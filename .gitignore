@@ -1,0 +1,26 @@
+.local/
+__pycache__/
+tests/results.json
+tests/restore-results.json
+node_modules/
+.env
+.env.*
+!.env.example
+coverage/
+.npm-cache/
+storage/private/
+
+# Local databases, logs and generated files
+*.log
+*.dump
+*.backup
+tmp/
+tmp_pdf_text/
+_qa*/
+output/
+.DS_Store
+Thumbs.db
+
+# Previous projects and unrelated conversations: kept locally only
+archive/
+other-chat-files/
