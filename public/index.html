@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Fixtech Demo แพลตฟอร์มจับคู่งานซ่อมคอมพิวเตอร์และอุปกรณ์อิเล็กทรอนิกส์">
+    <title>Fixtech — Demo v1.8</title>
+    <link rel="stylesheet" href="/app.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/" aria-label="Fixtech หน้าแรก"><span class="brand-mark">F</span>Fixtech</a>
+        <nav class="topnav" aria-label="เมนูหลัก"><a href="#how-it-works">วิธีใช้</a><a href="#demo-status">สถานะระบบ</a><a class="button button-primary" href="#workspace">ทดลองใช้งาน</a></nav>
+        <span class="demo-tag">DEMO v1.8</span>
+      </div>
+    </header>
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">ซ่อมอุปกรณ์ไอที ง่ายขึ้น</p>
+          <h1 id="hero-title">ปัญหาอุปกรณ์<br>ให้ Fixtech ช่วยหาทางออก</h1>
+          <p class="intro">แพลตฟอร์มต้นแบบสำหรับสร้างงานซ่อม รับคำแนะนำเบื้องต้น และจับคู่กับช่างที่เหมาะสม</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#how-it-works">ดูวิธีทำงาน</a>
+            <a class="button button-secondary" href="#demo-status">สถานะระบบ</a>
+          </div>
+          <p class="notice">นี่คือระบบสาธิต ยังไม่รับงานซ่อมจริงและไม่มีการชำระเงินจริง</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-window"><div class="art-window-head"><i></i><i></i><i></i></div><div class="art-window-content"><div class="art-line short"></div><div class="art-line"></div><div class="art-ticket"><b></b><span></span></div><div class="art-ticket"><b></b><span></span></div></div></div>
+          <div class="art-note">งานซ่อมของคุณ<br><strong>ติดตามได้ทุกขั้นตอน</strong></div>
+        </div>
+      </section>
+
+      <section id="how-it-works" class="section">
+        <div class="section-heading"><p class="eyebrow">กระบวนการของ Demo</p><h2>เริ่มจากอาการ ไปจนถึงการดูแลงาน</h2></div>
+        <div class="steps">
+          <article class="step-card"><span class="step-number">01</span><h3>เล่าอาการ</h3><p>เลือกประเภทอุปกรณ์ อธิบายปัญหา และแนบภาพประกอบ</p></article>
+          <article class="step-card"><span class="step-number">02</span><h3>วิเคราะห์และประเมิน</h3><p>ระบบช่วยสรุปอาการและประเมินราคา โดยแสดงแหล่งข้อมูลให้ตรวจสอบ</p></article>
+          <article class="step-card"><span class="step-number">03</span><h3>เลือกช่างและนัดหมาย</h3><p>จับคู่หรือเลือกข้อเสนอ พูดคุย และยืนยันช่วงเวลาที่สะดวก</p></article>
+          <article class="step-card"><span class="step-number">04</span><h3>ติดตามหลังซ่อม</h3><p>จำลองการชำระเงิน พร้อมจัดการรีวิว รับประกัน และข้อพิพาทในระบบ</p></article>
+        </div>
+      </section>
+
+      <section id="demo-status" class="status-panel" aria-labelledby="status-title">
+        <div><p class="eyebrow">สถานะการพัฒนา</p><h2 id="status-title">ระบบต้นแบบ</h2><p>AI ใช้ Ollama ในเครื่องเมื่อเปิดใช้งาน ส่วนราคามาจากตัวอย่าง curated ที่ไม่ใช่ราคาตลาดสด</p></div>
+        <dl class="status-list">
+          <div><dt>AI วิเคราะห์</dt><dd id="ai-status">กำลังตรวจสอบ…</dd></div>
+          <div><dt>แหล่งราคาอ้างอิง</dt><dd id="market-status">กำลังตรวจสอบ…</dd></div>
+          <div><dt>การชำระเงิน</dt><dd id="payment-status">กำลังตรวจสอบ…</dd></div>
+        </dl>
+      </section>
+
+      <section id="workspace" class="workspace" aria-labelledby="workspace-title">
+        <div class="section-heading"><p class="eyebrow">พื้นที่ทดลองระบบ</p><h2 id="workspace-title">เข้าสู่ระบบเพื่อจัดการงาน</h2><p>เลือกบทบาทสาธิตจากบัญชีใน README ข้อมูลทั้งหมดเป็นข้อมูลทดลอง</p></div>
+        <form id="login-form" class="login-form">
+          <label>อีเมล<input name="email" type="email" autocomplete="username" required placeholder="customer1@fixtech.demo"></label>
+          <label>รหัสผ่าน<input name="password" type="password" autocomplete="current-password" required></label>
+          <button class="button button-primary" type="submit">เข้าสู่ระบบ</button>
+        </form>
+        <p id="workspace-message" class="workspace-message" role="status"></p>
+        <div id="dashboard" hidden>
+          <div class="dashboard-head"><p id="user-label"></p><div><button id="notification-button" class="button button-secondary" type="button">การแจ้งเตือน</button> <button id="logout-button" class="button button-secondary" type="button">ออกจากระบบ</button></div></div>
+          <form id="job-form" class="job-form" hidden>
+            <h3>สร้างงานซ่อม</h3>
+            <div class="form-grid">
+              <label>ประเภทอุปกรณ์/งาน<select name="category"><option value="HARDWARE">Hardware</option><option value="SOFTWARE">Software</option></select></label>
+              <label>รูปแบบบริการ<select name="serviceFormat"><option value="ONSITE">ให้บริการที่สถานที่</option><option value="ONLINE">ออนไลน์</option></select></label>
+              <label>เขตบริการ<select name="districtCode" id="district-select" required></select></label>
+              <label class="company-field" hidden>ยี่ห้อ<input name="manufacturer" maxlength="100"></label>
+              <label class="company-field" hidden>รุ่น<input name="model" maxlength="100"></label>
+              <label class="company-field" hidden>เวลาที่สะดวก<input name="preferredTimeNote" maxlength="200" placeholder="เช่น วันธรรมดา 9.00–17.00"></label>
+              <label class="wide">อาการที่พบ<textarea name="symptom" maxlength="1000" required></textarea></label>
+              <label class="wide">รูปภาพประกอบ (สูงสุด 3 ภาพ)<input name="attachments" type="file" accept="image/jpeg,image/png,image/webp" multiple><small>รองรับ JPG, PNG และ WebP · จะถามความยินยอมก่อนอัปโหลด</small></label>
+            </div>
+            <button class="button button-primary" type="submit">สร้างฉบับร่างและวิเคราะห์</button>
+          </form>
+          <div id="job-list" class="job-list"></div>
+          <div id="admin-list" class="job-list" hidden></div>
+        </div>
+    </section>
+    </main>
+    <dialog id="app-dialog" aria-labelledby="dialog-title"><form class="dialog-card" id="dialog-form" method="dialog"><div class="dialog-head"><div><h2 id="dialog-title"></h2><p id="dialog-description"></p></div><button class="dialog-close" type="button" aria-label="ปิด" data-dialog-close>×</button></div><div id="dialog-body" class="dialog-body"></div><div id="dialog-actions" class="dialog-actions"></div></form></dialog>
+    <footer><span>Fixtech Demo v1.8</span><span>ข้อมูลสังเคราะห์เท่านั้น · ไม่มีการซ่อมหรือชำระเงินจริง</span></footer>
+  </body>
+</html>
