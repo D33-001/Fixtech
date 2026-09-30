@@ -1,4 +1,4 @@
-# Fixtech Demo v1.8
+# Fixtech 1.0
 
 โครงตั้งต้นสำหรับทีม 3 คนพัฒนา Frontend และ Backend ต่อร่วมกันบน branch `Develop`. อ่าน [สารบัญขั้น 1–8](docs/README.md) และ [วิธีทำงานร่วมกัน](CONTRIBUTING.md). ไฟล์แชทอื่นและ archive รุ่นเก่าเก็บเฉพาะเครื่องเดิม ไม่รวมใน repository นี้.
 
@@ -11,7 +11,7 @@
 | `release/` | DDL, SQL คำถามธุรกิจ, migration ทดลอง |
 | `docs/` | ข้อกำหนด แบบระบบ หลักฐานทดสอบ และเอกสารอ้างอิง |
 
-โครงการนี้ปรับจากฐานข้อมูล FixTech v4 เดิมมาเป็น Demo สำหรับรายวิชา โดยเปลี่ยนขอบเขตและ schema ตามเอกสาร SRS v1.8. สำเนาเอกสาร/ฐานข้อมูล/ชุดทดสอบ v4 ก่อนปรับอยู่ใน `archive/fixtech-v4/` และห้ามนำมาปะปนกับ Demo ปัจจุบัน.
+โครงการนี้ปรับจากฐานข้อมูล FixTech v4 เดิมมาเป็น Demo สำหรับรายวิชา โดยเปลี่ยนขอบเขตและ schema ตามเอกสาร SRS 1.0. สำเนาเอกสาร/ฐานข้อมูล/ชุดทดสอบ v4 ก่อนปรับอยู่ใน `archive/fixtech-v4/` และห้ามนำมาปะปนกับ Demo ปัจจุบัน.
 
 ## สถานะปัจจุบัน
 
@@ -60,13 +60,13 @@
 4. สั่ง `npm run setup:check -- --before-seed` เพื่อตรวจการยืนยันตัวตนกับฐานและตารางที่จำเป็น 26 ตารางโดยไม่แสดง credential ต้องแก้ทุกรายการที่รายงานก่อนทำต่อ
 5. หากฐานนี้ยังไม่เคย seed ให้สั่ง seed หนึ่งครั้ง:
 
-   ```powershell
-   $env:DEMO_SEED_ALLOW_MUTATION = 'yes'
-   npm run seed
-   Remove-Item Env:DEMO_SEED_ALLOW_MUTATION
-   ```
+ ```powershell
+ $env:DEMO_SEED_ALLOW_MUTATION = 'yes'
+ npm run seed
+ Remove-Item Env:DEMO_SEED_ALLOW_MUTATION
+ ```
 
-    seed จะใช้ `DEMO_SEED_PASSWORD` ในเครื่องกับบัญชี Demo ทุกบัญชีและไม่พิมพ์รหัสผ่านออกมา ห้าม seed ซ้ำ เว้นแต่ตั้งใจ reset ฐาน Demo ที่ทิ้งได้
+ seed จะใช้ `DEMO_SEED_PASSWORD` ในเครื่องกับบัญชี Demo ทุกบัญชีและไม่พิมพ์รหัสผ่านออกมา ห้าม seed ซ้ำ เว้นแต่ตั้งใจ reset ฐาน Demo ที่ทิ้งได้
 6. สั่ง `npm run setup:check`, `npm run check`, `npm test` และ `python -m unittest tests/check_demo_v18_schema.py` การทดสอบ workflow ของ PostgreSQL จะถูกข้ามถ้าไม่ได้กำหนด `FIXTECH_TEST_DATABASE_URL` ให้ชี้ไปยังฐานทดสอบที่ทิ้งได้อย่างชัดเจน
 7. สั่ง `npm start` และเปิดหน้าต่าง PowerShell ค้างไว้ จากนั้นเข้า `http://localhost:3000` ตรวจว่า `/api/health/ready` รายงาน `ready` ก่อน login รหัสผ่านของบัญชี Demo ทุกบัญชีเท่ากับ `DEMO_SEED_PASSWORD` ในเครื่อง
 
@@ -78,4 +78,4 @@ workflow ของ Demo และเส้นทาง Ollama ในเครื
 
 ## ข้อมูลเดิม
 
-FixTech v4 เป็นระบบบริการหน้างานคนละขอบเขต ไม่ใช่ schema ของ Demo นี้. archive เก็บเฉพาะเครื่องเดิมและไม่รวมใน repository. การติดตั้ง v1.8 เป็น fresh schema เท่านั้น; ไม่มี migration/แปลงข้อมูลจริงจาก v4.
+FixTech v4 เป็นระบบบริการหน้างานคนละขอบเขต ไม่ใช่ schema ของ Demo นี้. archive เก็บเฉพาะเครื่องเดิมและไม่รวมใน repository. การติดตั้ง 1.0 เป็น fresh schema เท่านั้น; ไม่มี migration/แปลงข้อมูลจริงจาก v4.

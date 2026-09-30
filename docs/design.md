@@ -1,15 +1,15 @@
-# จุดเริ่มต้นการออกแบบระบบ — Demo v1.8
+# จุดเริ่มต้นการออกแบบระบบ — ระบบสาธิต 1.0
 
 ## แผนภาพสถาปัตยกรรมสำหรับอธิบายตาม CE385
 
 ```mermaid
 flowchart LR
-  B[เบราว์เซอร์: public HTML/CSS/JavaScript] -->|HTTPS ในรุ่นใช้งานจริง; HTTP localhost สำหรับ Demo| A[Express app: routes, session, validation, authorization]
-  A --> S[กฎงาน: state, ราคา, matching]
-  S --> D[(PostgreSQL: Demo schema 26 ตาราง)]
-  A --> F[Private image storage]
-  S --> O[Ollama/Gemma 3 4B บนเครื่อง Demo]
-  S --> P[Curated price references]
+ B[เบราว์เซอร์: public HTML/CSS/JavaScript] -->|HTTPS ในรุ่นใช้งานจริง; HTTP localhost สำหรับ Demo| A[Express app: routes, session, validation, authorization]
+ A --> S[กฎงาน: state, ราคา, matching]
+ S --> D[(PostgreSQL: Demo schema 26 ตาราง)]
+ A --> F[Private image storage]
+ S --> O[Ollama/Gemma 3 4B บนเครื่อง Demo]
+ S --> P[Curated price references]
 ```
 
 การเลือกแบบนี้เป็น **modular monolith 3 ชั้น**: เบราว์เซอร์แสดงผล, Express ตรวจคำขอ/สิทธิ์และเรียกกฎธุรกิจ, PostgreSQL บังคับ PK/FK/UNIQUE/CHECK/transaction. การอ่านเขียน DB และเรียก Ollama ใช้ asynchronous I/O; ไม่ทำงานโมเดลใน event loop ของ Node.js. ใช้ `pg` กับ SQL แบบ parameterized เพราะ DDL 26 ตารางและกฎ transaction มีอยู่แล้วและทีมต้องอธิบาย SQL ได้ตาม CE396. สไลด์ CE385 สัปดาห์ที่ 8 สอน Prisma/Zod เป็นตัวอย่างหนึ่ง; ระบบ Demo ปัจจุบัน **ไม่ได้ติดตั้ง Prisma หรือ Zod**. การย้าย ORM/validation library ต้องประเมิน schema migration, ความเข้ากันของ API และชุดทดสอบก่อน ไม่ถือว่าจำเป็นเพียงเพราะปรากฏในสไลด์.
@@ -22,7 +22,7 @@ flowchart LR
 
 การตรวจความสอดคล้องและปรับประสิทธิภาพล่าสุดบันทึกใน [Step 1–7 optimization review](step-1-7-optimization-review.md); ผลทดสอบรอบนั้นอยู่ต้น [validation report](validation.md).
 
-ข้อกำหนดที่ผู้ใช้ขอเพิ่มเพื่อใช้งานจริง ได้แก่ การชำระเงินจริง, แหล่งราคาอัปเดต, การตรวจตัวตนช่าง, security audit และ WCAG 2.2 AA อยู่ใน [แผนขยายสู่ production](production-expansion-v1.md) และ SRS §14. แผนนี้เป็นงานรุ่นถัดไปและยังไม่เปลี่ยนสถานะของ Demo v1.8.
+ข้อกำหนดที่ผู้ใช้ขอเพิ่มเพื่อใช้งานจริง ได้แก่ การชำระเงินจริง, แหล่งราคาอัปเดต, การตรวจตัวตนช่าง, security audit และ WCAG 2.2 AA อยู่ใน [แผนขยายสู่ production](production-expansion-v1.md) และ SRS §14. แผนนี้เป็นงานรุ่นถัดไปและยังไม่เปลี่ยนสถานะของ ระบบสาธิต 1.0.
 
 รายละเอียดการต่อยอดขั้น 1–7 สำหรับรุ่นใช้งานจริงอยู่ใน [แบบสร้าง Production](production-step-1-7-build-spec.md); [ผลตรวจความพร้อม](production-readiness-review.md) ระบุส่วนที่ทำแล้วและเกณฑ์ที่ยังไม่ผ่าน.
 

@@ -1,4 +1,4 @@
-# คู่มือดูแลและเดินระบบ — Fixtech Demo v1.8
+# คู่มือดูแลและเดินระบบ — Fixtech 1.0
 
 ## ฐานข้อมูล
 
@@ -46,4 +46,4 @@ $env:FIXTECH_TEST_DATABASE_ALLOW_MUTATION = $null
 
 ## ระบบเดิม v4
 
-v4 database และวิธีสำรอง/กู้คืนเดิมถูกเก็บใน `archive/fixtech-v4/`. คำสั่ง/manifest ของ v4 ไม่ใช่ขั้นตอนของ Demo v1.8. ไม่มีการย้ายข้อมูลอัตโนมัติจาก schema v4.
+v4 database และวิธีสำรอง/กู้คืนเดิมถูกเก็บใน `archive/fixtech-v4/`. คำสั่ง/manifest ของ v4 ไม่ใช่ขั้นตอนของ ระบบสาธิต 1.0. ไม่มีการย้ายข้อมูลอัตโนมัติจาก schema v4.

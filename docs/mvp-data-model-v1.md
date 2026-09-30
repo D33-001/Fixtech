@@ -1,20 +1,20 @@
-# Fixtech MVP Demo — ขั้นตอนที่ 4: ER Diagram และ Data Dictionary
+# Fixtech 1.0 — ขั้นตอนที่ 4: ER Diagram และพจนานุกรมข้อมูล
 
-> **ฉบับใช้งาน:** ERD, schema และ Data Dictionary ปัจจุบันอยู่ใน §9 (26 ตาราง); §§1–8 และ ERD 10 ตารางเป็น historical baseline v1.7 เท่านั้น ห้ามใช้สร้างฐาน Demo. ใช้ SQL ใน `docs/fixtech-demo-v1.8-drawdb.sql` สำหรับ DrawDB และ `release/FixTech-demo-v1.8.database.sql` สำหรับติดตั้งบนฐานว่าง; ทั้งสองไฟล์ต้องตรงกัน. DDL เป็น fresh-install เท่านั้น (ไม่ใช่ migration) และติดตั้ง/ตรวจบน disposable PostgreSQL 18.6 ผ่านตาม [validation report](validation.md) เมื่อ 2026-09-25; ไม่ได้ติดตั้งทับฐาน PostgreSQL เดิม.
+> **วิธีอ่านสำหรับผู้เริ่มต้น:** อ่าน §1 เพื่อเข้าใจ entity, key และ cardinality แล้วใช้ §9 เป็นแบบจำลองฉบับใช้งานที่มี 26 ตาราง ส่วนภาพย่อในส่วนก่อนหน้าใช้ช่วยทำความเข้าใจเท่านั้น ห้ามนำไปสร้างฐานจริง ใช้ `docs/fixtech-demo-v1.8-drawdb.sql` สำหรับ DrawDB และ `release/FixTech-demo-v1.8.database.sql` สำหรับติดตั้งบนฐานว่าง ชื่อไฟล์ทางเทคนิคยังคงเดิมเพื่อให้ชุดทดสอบทำงาน
 
 > **Implementation link:** ขั้น 5 ใช้ schema นี้โดยไม่เพิ่ม/ลด 26 ตาราง; ดู [API และกฎการเปลี่ยนสถานะงาน](api-and-job-state-v1.md) สำหรับวิธีที่แต่ละ entity ถูกอ่าน/เขียนจาก workflow.
 
-**อ้างอิง:** [ขั้น 1 — SRS v1.8 Expanded Demo](software-requirements-v1.md), [ขั้น 2 — Use Cases, ERD เชิงแนวคิด และ API](mvp-demo-design-v1.md), [ขั้น 3 — Activity Diagram](mvp-activity-diagrams-v1.md)<br>
-**สถานะ:** แบบจำลองข้อมูล/physical DDL สำหรับ expanded demo; DDL ติดตั้งและ workflow ผ่านการทดสอบใน disposable PostgreSQL ตาม validation report. Runtime ปัจจุบันใช้ Ollama local และ curated price adapter ตาม SRS §13.7/ขั้น 5 §9; ห้ามถือเป็น production integration.<br>
+**อ้างอิง:** [ขั้น 1 — SRS 1.0](software-requirements-v1.md), [ขั้น 2 — ผู้ใช้และกรณีใช้งาน](mvp-demo-design-v1.md), [ขั้น 3 — แผนภาพกิจกรรม](mvp-activity-diagrams-v1.md)<br>
+**สถานะ:** แบบจำลองข้อมูลและ DDL สำหรับ Demo ผ่านการติดตั้งและทดสอบบน PostgreSQL ที่ทิ้งได้ ใช้ Ollama ในเครื่องและราคา curated ห้ามถือเป็น production integration<br>
 **ฐานข้อมูลเป้าหมาย:** PostgreSQL; เวลาเก็บเป็น `timestamptz`; UUID สร้างจากแอปเพื่อไม่บังคับติดตั้ง extension
 
 **ตัวอย่าง FD/Normalization สำหรับอธิบายตาม CE396:** ในตารางสมมติที่แบน `job_id, customer_id, provider_id, provider_name, district_code, district_name` มี FD เช่น `job_id → customer_id, district_code` และ `district_code → district_name`; หากเก็บชื่อเขตซ้ำทุกงานจะเกิด update anomaly. Demo แยก `districts(code PK, name)` และให้ `jobs.district_code` เป็น FK จึงแก้ชื่อเขตที่เดียว. ตารางเชื่อม `provider_districts(provider_id, district_code)` มีคีย์ผสม ป้องกันคู่เดิมซ้ำ; `provider_services` แทนความสัมพันธ์ผู้ให้บริการกับชนิดบริการ. `company_profiles.user_id` เป็นทั้ง PK/FK ทำให้หนึ่งบัญชีบริษัทมีโปรไฟล์ได้ไม่เกินหนึ่ง. ข้อความนี้เป็น **ตัวอย่างเหตุผลการแยกตาราง** ไม่ใช่หลักฐานพิสูจน์ 3NF ครบทั้ง 26 ตาราง; สำหรับการนำเสนอ CE396 ต้องแสดง FD, candidate key และกรณี snapshot ที่ตั้งใจเก็บซ้ำทีละกลุ่มตาราง. ดู [ผลเทียบสไลด์](course-slide-alignment-review.md).
 
 ## 1. ขอบเขตและหลักการ
 
-เนื้อหา §§1–8 เป็นแบบจำลอง baseline v1.7 เพื่อเก็บประวัติและห้ามใช้เป็น schema ปัจจุบัน. แบบข้อมูล Demo v1.8 อยู่ใน §9 และต้องสอดคล้องกับ SRS §13 และขั้น 2 §10.
+เนื้อหา §§1–8 เป็นแบบจำลอง baseline 1.0 เพื่อเก็บประวัติและห้ามใช้เป็น schema ปัจจุบัน. แบบข้อมูล ระบบสาธิต 1.0 อยู่ใน §9 และต้องสอดคล้องกับ SRS §13 และขั้น 2 §10.
 
-§1 อธิบายขอบเขตข้อมูล core ของ baseline v1.7 เท่านั้น; expanded entities สำหรับไฟล์แนบ, chat, notifications, appointments, simulated payment, warranty, review, dispute และ AI/market integrations ระบุใน §9. ทีมช่างหลายสมาชิกยังไม่อยู่ใน Demo.
+§1 อธิบายขอบเขตข้อมูล core ของ baseline 1.0 เท่านั้น; expanded entities สำหรับไฟล์แนบ, chat, notifications, appointments, simulated payment, warranty, review, dispute และ AI/market integrations ระบุใน §9. ทีมช่างหลายสมาชิกยังไม่อยู่ใน Demo.
 
 คำว่า “แสดงได้” หมายถึงข้อมูลในฐานข้อมูล ไม่ได้แปลว่า actor ทุก role มองเห็นได้: API ต้องตรวจ role, ownership/assignment และซ่อนข้อมูลส่วนบุคคลตามขั้น 2.
 
@@ -24,106 +24,106 @@ Session ไม่ใช่ข้อมูลธุรกิจใน ERD นี�
 
 ```mermaid
 erDiagram
-    USERS ||--o| COMPANY_PROFILES : "business profile"
-    USERS ||--o| PROVIDER_PROFILES : "technician profile"
-    USERS ||--o{ JOBS : "owns"
-    DISTRICTS ||--o{ JOBS : "requested in"
-    PROVIDER_PROFILES o|--o{ JOBS : "assigned to"
-    PRICE_FIXTURES o|--o{ JOBS : "snapshotted from"
-    PROVIDER_PROFILES ||--o{ PROVIDER_SERVICES : "supports"
-    PRICE_FIXTURES ||--o{ PROVIDER_SERVICES : "valid service pair"
-    PROVIDER_PROFILES ||--o{ PROVIDER_DISTRICTS : "serves"
-    DISTRICTS ||--o{ PROVIDER_DISTRICTS : "covered by"
-    JOBS ||--o{ OFFERS : "receives"
-    PROVIDER_PROFILES ||--o{ OFFERS : "offered by"
-    JOBS ||--|{ JOB_STATUS_EVENTS : "has history"
-    USERS ||--o{ JOB_STATUS_EVENTS : "initiated by"
+ USERS ||--o| COMPANY_PROFILES : "business profile"
+ USERS ||--o| PROVIDER_PROFILES : "technician profile"
+ USERS ||--o{ JOBS : "owns"
+ DISTRICTS ||--o{ JOBS : "requested in"
+ PROVIDER_PROFILES o|--o{ JOBS : "assigned to"
+ PRICE_FIXTURES o|--o{ JOBS : "snapshotted from"
+ PROVIDER_PROFILES ||--o{ PROVIDER_SERVICES : "supports"
+ PRICE_FIXTURES ||--o{ PROVIDER_SERVICES : "valid service pair"
+ PROVIDER_PROFILES ||--o{ PROVIDER_DISTRICTS : "serves"
+ DISTRICTS ||--o{ PROVIDER_DISTRICTS : "covered by"
+ JOBS ||--o{ OFFERS : "receives"
+ PROVIDER_PROFILES ||--o{ OFFERS : "offered by"
+ JOBS ||--|{ JOB_STATUS_EVENTS : "has history"
+ USERS ||--o{ JOB_STATUS_EVENTS : "initiated by"
 
-    USERS {
-      uuid id PK
-      varchar email UK
-      varchar password_hash
-      varchar role
-      varchar display_name
-      boolean is_active
-      timestamptz created_at
-      timestamptz updated_at
-    }
-    COMPANY_PROFILES {
-      uuid user_id PK,FK
-      varchar company_name
-      varchar contact_name
-      timestamptz created_at
-      timestamptz updated_at
-    }
-    PROVIDER_PROFILES {
-      uuid id PK
-      uuid user_id FK,UK
-      varchar display_name
-      integer priority
-      boolean is_approved
-      boolean is_available
-      timestamptz created_at
-      timestamptz updated_at
-    }
-    DISTRICTS {
-      varchar code PK
-      varchar name UK
-    }
-    PRICE_FIXTURES {
-      uuid id PK
-      varchar category
-      varchar service_format
-      integer b2c_price
-      integer b2b_min
-      integer b2b_max
-    }
-    PROVIDER_SERVICES {
-      uuid provider_id PK,FK
-      varchar category PK,FK
-      varchar service_format PK,FK
-    }
-    PROVIDER_DISTRICTS {
-      uuid provider_id PK,FK
-      varchar district_code PK,FK
-    }
-    JOBS {
-      uuid id PK
-      uuid customer_user_id FK
-      varchar district_code FK
-      uuid price_fixture_id FK
-      uuid assigned_provider_id FK
-      varchar status
-      text symptom_text
-      text ai_summary
-      integer analysis_version
-      integer confirmed_analysis_version
-      integer price_min_snapshot
-      integer price_max_snapshot
-      timestamptz created_at
-      timestamptz posted_at
-      timestamptz started_at
-      timestamptz submitted_at
-      timestamptz completed_at
-      timestamptz cancelled_at
-    }
-    OFFERS {
-      uuid id PK
-      uuid job_id FK
-      uuid provider_id FK
-      text scope_summary
-      integer amount
-      varchar status
-      timestamptz created_at
-    }
-    JOB_STATUS_EVENTS {
-      uuid id PK
-      uuid job_id FK
-      uuid actor_user_id FK
-      varchar from_status
-      varchar to_status
-      timestamptz created_at
-    }
+ USERS {
+ uuid id PK
+ varchar email UK
+ varchar password_hash
+ varchar role
+ varchar display_name
+ boolean is_active
+ timestamptz created_at
+ timestamptz updated_at
+ }
+ COMPANY_PROFILES {
+ uuid user_id PK,FK
+ varchar company_name
+ varchar contact_name
+ timestamptz created_at
+ timestamptz updated_at
+ }
+ PROVIDER_PROFILES {
+ uuid id PK
+ uuid user_id FK,UK
+ varchar display_name
+ integer priority
+ boolean is_approved
+ boolean is_available
+ timestamptz created_at
+ timestamptz updated_at
+ }
+ DISTRICTS {
+ varchar code PK
+ varchar name UK
+ }
+ PRICE_FIXTURES {
+ uuid id PK
+ varchar category
+ varchar service_format
+ integer b2c_price
+ integer b2b_min
+ integer b2b_max
+ }
+ PROVIDER_SERVICES {
+ uuid provider_id PK,FK
+ varchar category PK,FK
+ varchar service_format PK,FK
+ }
+ PROVIDER_DISTRICTS {
+ uuid provider_id PK,FK
+ varchar district_code PK,FK
+ }
+ JOBS {
+ uuid id PK
+ uuid customer_user_id FK
+ varchar district_code FK
+ uuid price_fixture_id FK
+ uuid assigned_provider_id FK
+ varchar status
+ text symptom_text
+ text ai_summary
+ integer analysis_version
+ integer confirmed_analysis_version
+ integer price_min_snapshot
+ integer price_max_snapshot
+ timestamptz created_at
+ timestamptz posted_at
+ timestamptz started_at
+ timestamptz submitted_at
+ timestamptz completed_at
+ timestamptz cancelled_at
+ }
+ OFFERS {
+ uuid id PK
+ uuid job_id FK
+ uuid provider_id FK
+ text scope_summary
+ integer amount
+ varchar status
+ timestamptz created_at
+ }
+ JOB_STATUS_EVENTS {
+ uuid id PK
+ uuid job_id FK
+ uuid actor_user_id FK
+ varchar from_status
+ varchar to_status
+ timestamptz created_at
+ }
 ```
 
 เพื่อให้อ่านความสัมพันธ์ได้ชัด ERD แสดงเฉพาะคอลัมน์หลัก; รายชื่อคอลัมน์ครบพร้อม nullability และ constraint อยู่ใน Data Dictionary ด้านล่าง.
@@ -351,7 +351,7 @@ erDiagram
 
 ## 7. Traceability กับขั้น 1, 2 และ 3
 
-| ประเด็น | ขั้น 1 — SRS v1.7 | ขั้น 2 — Use Case/API | ขั้น 3 — Activity Diagram | การแทนในขั้น 4 |
+| ประเด็น | ขั้น 1 — SRS 1.0 | ขั้น 2 — Use Case/API | ขั้น 3 — Activity Diagram | การแทนในขั้น 4 |
 |---|---|---|---|---|
 | บัญชี/role และ privacy | §1.4 Must 1, 7; ตรวจ role/ownership | actor/authorization, UC-01/06 | lane ลูกค้า/ระบบ/ช่างและตรวจสิทธิ์ | `users`, role-specific profiles; API บังคับสิทธิ์ก่อนอ่าน/เขียน |
 | B2C/B2B workflow, ราคา | §1.4 Must 2, 4 | UC-02/03; deterministic mock และ price fixtures | analyze → review → confirm summary+price → publish | `jobs`, `price_fixtures`; analysis version/confirmed version และ snapshot |
@@ -369,7 +369,7 @@ erDiagram
 
 ## 8. Checklist ก่อนเริ่ม implementation ฐานข้อมูล
 
-> Checklist นี้เป็นบันทึก baseline v1.7 และไม่ใช่ gate ปัจจุบัน. สำหรับ Demo v1.8 ให้ใช้สถานะ/แนวทางใน §9.7; รายการที่ยังเป็นงาน implementation ให้นำไปแตกเป็น tasks/tests โดยไม่เลื่อนการเริ่มงานทั้งหมด.
+> Checklist นี้เป็นบันทึก baseline 1.0 และไม่ใช่ gate ปัจจุบัน. สำหรับ ระบบสาธิต 1.0 ให้ใช้สถานะ/แนวทางใน §9.7; รายการที่ยังเป็นงาน implementation ให้นำไปแตกเป็น tasks/tests โดยไม่เลื่อนการเริ่มงานทั้งหมด.
 
 - [ ] ทีมยืนยันชื่อคอลัมน์/ความยาวข้อความให้ตรง API validation ในขั้น 2.
 - [ ] Migration สร้างตารางตาม dependency order และใช้ FK/PK/UNIQUE/CHECK/partial index ตามเอกสาร.
@@ -378,264 +378,264 @@ erDiagram
 - [ ] API ใช้ parameterized query, session role และ owner จาก server; ไม่เชื่อ status/customer/provider IDs จาก client.
 - [ ] เอกสาร/หน้าจอระบุราคาและผล AI เป็นข้อมูลสาธิต; ไม่ชวนให้เข้าใจว่าเป็นราคาจริงหรือการซ่อมจริง.
 
-## 9. ส่วนขยายแบบจำลองข้อมูลสำหรับ Demo v1.8
+## 9. ส่วนขยายแบบจำลองข้อมูลสำหรับ ระบบสาธิต 1.0
 
-หัวข้อนี้เป็น target data model หลังขยาย Demo และ **แทน** model v1.7 ในส่วนที่ขัดกัน. ตาราง core เดิม 10 ตารางยังเป็นฐาน แต่มีการปรับ pricing model และเพิ่ม domain entities ตาม feature set ใหม่. Target นี้มี 26 domain tables: 10 core/current tables (รวม `SERVICE_CATALOG` แทน `PRICE_FIXTURES`) และ 16 ตารางเพิ่มใน §9.1–9.3. Session store เป็น infrastructure ของ middleware; ไม่รวมใน domain ERD.
+หัวข้อนี้เป็น target data model หลังขยาย Demo และ **แทน** model 1.0 ในส่วนที่ขัดกัน. ตาราง core เดิม 10 ตารางยังเป็นฐาน แต่มีการปรับ pricing model และเพิ่ม domain entities ตาม feature set ใหม่. Target นี้มี 26 domain tables: 10 core/current tables (รวม `SERVICE_CATALOG` แทน `PRICE_FIXTURES`) และ 16 ตารางเพิ่มใน §9.1–9.3. Session store เป็น infrastructure ของ middleware; ไม่รวมใน domain ERD.
 
 ### 9.1 Intake, files, consent, AI และราคาอ้างอิง curated
 
 ```mermaid
 erDiagram
-    USERS ||--o{ JOBS : owns
-    USERS o|--o{ JOBS : agrees_price
-    PROVIDER_PROFILES o|--o{ JOBS : assigned_to
-    DISTRICTS ||--o{ JOBS : requested_in
-    SERVICE_CATALOG ||--o{ JOBS : category_format
-    PROVIDER_PROFILES ||--o{ PROVIDER_SERVICES : supports
-    SERVICE_CATALOG ||--o{ PROVIDER_SERVICES : allowed_pair
-    PROVIDER_PROFILES ||--o{ PROVIDER_DISTRICTS : serves
-    DISTRICTS ||--o{ PROVIDER_DISTRICTS : covered_in
-    JOBS ||--o{ JOB_ATTACHMENTS : contains
-    USERS ||--o{ JOB_ATTACHMENTS : uploaded_by
-    JOBS ||--o{ AI_CONSENTS : has_consent
-    USERS ||--o{ AI_CONSENTS : gave_consent
-    JOBS ||--o{ AI_ANALYSIS_RUNS : analyzed_as
-    AI_CONSENTS ||--o{ AI_ANALYSIS_RUNS : authorizes
-    AI_ANALYSIS_RUNS ||--o{ AI_RUN_ATTACHMENTS : used
-    JOB_ATTACHMENTS ||--o{ AI_RUN_ATTACHMENTS : selected_for_ai
-    JOBS ||--o{ PRICE_ESTIMATES : estimated
-    USERS o|--o{ PRICE_ESTIMATES : accepts
-    SERVICE_CATALOG ||--o{ PRICE_ESTIMATES : for_workflow
-    PRICING_RULE_SETS ||--o{ PRICE_ESTIMATES : calculated_with
-    AI_ANALYSIS_RUNS o|--o{ PRICE_ESTIMATES : optional_context
+ USERS ||--o{ JOBS : owns
+ USERS o|--o{ JOBS : agrees_price
+ PROVIDER_PROFILES o|--o{ JOBS : assigned_to
+ DISTRICTS ||--o{ JOBS : requested_in
+ SERVICE_CATALOG ||--o{ JOBS : category_format
+ PROVIDER_PROFILES ||--o{ PROVIDER_SERVICES : supports
+ SERVICE_CATALOG ||--o{ PROVIDER_SERVICES : allowed_pair
+ PROVIDER_PROFILES ||--o{ PROVIDER_DISTRICTS : serves
+ DISTRICTS ||--o{ PROVIDER_DISTRICTS : covered_in
+ JOBS ||--o{ JOB_ATTACHMENTS : contains
+ USERS ||--o{ JOB_ATTACHMENTS : uploaded_by
+ JOBS ||--o{ AI_CONSENTS : has_consent
+ USERS ||--o{ AI_CONSENTS : gave_consent
+ JOBS ||--o{ AI_ANALYSIS_RUNS : analyzed_as
+ AI_CONSENTS ||--o{ AI_ANALYSIS_RUNS : authorizes
+ AI_ANALYSIS_RUNS ||--o{ AI_RUN_ATTACHMENTS : used
+ JOB_ATTACHMENTS ||--o{ AI_RUN_ATTACHMENTS : selected_for_ai
+ JOBS ||--o{ PRICE_ESTIMATES : estimated
+ USERS o|--o{ PRICE_ESTIMATES : accepts
+ SERVICE_CATALOG ||--o{ PRICE_ESTIMATES : for_workflow
+ PRICING_RULE_SETS ||--o{ PRICE_ESTIMATES : calculated_with
+ AI_ANALYSIS_RUNS o|--o{ PRICE_ESTIMATES : optional_context
 
-    USERS {
-      uuid id PK
-      varchar role
-    }
-    DISTRICTS {
-      varchar code PK
-      varchar name UK
-    }
-    SERVICE_CATALOG {
-      varchar category PK
-      varchar service_format PK
-      varchar label
-      boolean is_active
-    }
-    JOBS {
-      uuid id PK
-      uuid customer_user_id FK
-      varchar district_code FK
-      varchar category FK
-      varchar service_format FK
-      varchar status
-      numeric agreed_amount
-      uuid agreed_by_user_id FK
-      timestamptz agreed_at
-      integer analysis_version
-      integer confirmed_analysis_version
-    }
-    JOB_ATTACHMENTS {
-      uuid id PK
-      uuid job_id FK
-      uuid uploaded_by_user_id FK
-      varchar storage_key UK
-      varchar mime_type
-      bigint size_bytes
-      varchar status
-    }
-    AI_CONSENTS {
-      uuid id PK
-      uuid job_id FK
-      uuid user_id FK
-      varchar terms_version
-      jsonb data_scope
-      timestamptz consented_at
-      timestamptz revoked_at
-    }
-    AI_ANALYSIS_RUNS {
-      uuid id PK
-      uuid job_id FK
-      uuid consent_id FK
-      integer version
-      varchar provider_name
-      varchar model_name
-      varchar status
-      jsonb result_json
-      timestamptz started_at
-      timestamptz completed_at
-    }
-    AI_RUN_ATTACHMENTS {
-      uuid analysis_run_id PK,FK
-      uuid attachment_id PK,FK
-    }
-    PRICING_RULE_SETS {
-      uuid id PK
-      integer version UK
-      jsonb rules
-      timestamptz effective_at
-      boolean is_active
-    }
-    PRICE_ESTIMATES {
-      uuid id PK
-      uuid job_id FK
-      uuid analysis_run_id FK
-      uuid pricing_rule_set_id FK
-      varchar source_name
-      timestamptz fetched_at
-      timestamptz source_updated_at
-      numeric estimated_min
-      numeric estimated_max
-      varchar currency
-      varchar status
-    }
+ USERS {
+ uuid id PK
+ varchar role
+ }
+ DISTRICTS {
+ varchar code PK
+ varchar name UK
+ }
+ SERVICE_CATALOG {
+ varchar category PK
+ varchar service_format PK
+ varchar label
+ boolean is_active
+ }
+ JOBS {
+ uuid id PK
+ uuid customer_user_id FK
+ varchar district_code FK
+ varchar category FK
+ varchar service_format FK
+ varchar status
+ numeric agreed_amount
+ uuid agreed_by_user_id FK
+ timestamptz agreed_at
+ integer analysis_version
+ integer confirmed_analysis_version
+ }
+ JOB_ATTACHMENTS {
+ uuid id PK
+ uuid job_id FK
+ uuid uploaded_by_user_id FK
+ varchar storage_key UK
+ varchar mime_type
+ bigint size_bytes
+ varchar status
+ }
+ AI_CONSENTS {
+ uuid id PK
+ uuid job_id FK
+ uuid user_id FK
+ varchar terms_version
+ jsonb data_scope
+ timestamptz consented_at
+ timestamptz revoked_at
+ }
+ AI_ANALYSIS_RUNS {
+ uuid id PK
+ uuid job_id FK
+ uuid consent_id FK
+ integer version
+ varchar provider_name
+ varchar model_name
+ varchar status
+ jsonb result_json
+ timestamptz started_at
+ timestamptz completed_at
+ }
+ AI_RUN_ATTACHMENTS {
+ uuid analysis_run_id PK,FK
+ uuid attachment_id PK,FK
+ }
+ PRICING_RULE_SETS {
+ uuid id PK
+ integer version UK
+ jsonb rules
+ timestamptz effective_at
+ boolean is_active
+ }
+ PRICE_ESTIMATES {
+ uuid id PK
+ uuid job_id FK
+ uuid analysis_run_id FK
+ uuid pricing_rule_set_id FK
+ varchar source_name
+ timestamptz fetched_at
+ timestamptz source_updated_at
+ numeric estimated_min
+ numeric estimated_max
+ varchar currency
+ varchar status
+ }
 ```
 
 ### 9.2 Communication, appointments และ simulated payments
 
 ```mermaid
 erDiagram
-    USERS ||--o{ JOB_MESSAGES : sends
-    JOBS ||--o{ JOB_MESSAGES : contains
-    USERS ||--o{ NOTIFICATIONS : receives
-    JOBS o|--o{ NOTIFICATIONS : about
-    JOBS ||--o{ APPOINTMENTS : schedules
-    PROVIDER_PROFILES ||--o{ APPOINTMENTS : assigned_provider
-    USERS ||--o{ APPOINTMENTS : proposes
-    USERS o|--o{ APPOINTMENTS : cancels
-    JOBS ||--o{ PAYMENT_SIMULATIONS : has
-    USERS ||--o{ PAYMENT_SIMULATIONS : initiates
-    USERS o|--o{ PAYMENT_SIMULATIONS : confirms
+ USERS ||--o{ JOB_MESSAGES : sends
+ JOBS ||--o{ JOB_MESSAGES : contains
+ USERS ||--o{ NOTIFICATIONS : receives
+ JOBS o|--o{ NOTIFICATIONS : about
+ JOBS ||--o{ APPOINTMENTS : schedules
+ PROVIDER_PROFILES ||--o{ APPOINTMENTS : assigned_provider
+ USERS ||--o{ APPOINTMENTS : proposes
+ USERS o|--o{ APPOINTMENTS : cancels
+ JOBS ||--o{ PAYMENT_SIMULATIONS : has
+ USERS ||--o{ PAYMENT_SIMULATIONS : initiates
+ USERS o|--o{ PAYMENT_SIMULATIONS : confirms
 
-    JOB_MESSAGES {
-      uuid id PK
-      uuid job_id FK
-      uuid sender_user_id FK
-      text body
-      timestamptz created_at
-    }
-    NOTIFICATIONS {
-      uuid id PK
-      uuid user_id FK
-      uuid job_id FK
-      varchar event_key UK
-      varchar type
-      timestamptz created_at
-      timestamptz read_at
-    }
-    APPOINTMENTS {
-      uuid id PK
-      uuid job_id FK
-      uuid provider_id FK
-      uuid proposed_by_user_id FK
-      timestamptz starts_at
-      timestamptz ends_at
-      varchar status
-      timestamptz customer_confirmed_at
-      timestamptz provider_confirmed_at
-      uuid supersedes_id FK
-    }
-    PAYMENT_SIMULATIONS {
-      uuid id PK
-      uuid job_id FK
-      uuid initiated_by_user_id FK
-      varchar method
-      varchar status
-      numeric amount
-      varchar currency
-      varchar idempotency_key UK
-      timestamptz confirmed_at
-    }
+ JOB_MESSAGES {
+ uuid id PK
+ uuid job_id FK
+ uuid sender_user_id FK
+ text body
+ timestamptz created_at
+ }
+ NOTIFICATIONS {
+ uuid id PK
+ uuid user_id FK
+ uuid job_id FK
+ varchar event_key UK
+ varchar type
+ timestamptz created_at
+ timestamptz read_at
+ }
+ APPOINTMENTS {
+ uuid id PK
+ uuid job_id FK
+ uuid provider_id FK
+ uuid proposed_by_user_id FK
+ timestamptz starts_at
+ timestamptz ends_at
+ varchar status
+ timestamptz customer_confirmed_at
+ timestamptz provider_confirmed_at
+ uuid supersedes_id FK
+ }
+ PAYMENT_SIMULATIONS {
+ uuid id PK
+ uuid job_id FK
+ uuid initiated_by_user_id FK
+ varchar method
+ varchar status
+ numeric amount
+ varchar currency
+ varchar idempotency_key UK
+ timestamptz confirmed_at
+ }
 ```
 
 ### 9.3 Warranty, reviews, disputes และ audit
 
 ```mermaid
 erDiagram
-    JOBS ||--o| WARRANTIES : covered_by
-    PROVIDER_PROFILES ||--o{ WARRANTIES : provided_by
-    USERS ||--o{ WARRANTIES : accepts_terms
-    WARRANTIES ||--o{ WARRANTY_CLAIMS : claimed_under
-    USERS ||--o{ WARRANTY_CLAIMS : opens
-    JOBS ||--o| REVIEWS : reviewed_once
-    USERS ||--o{ REVIEWS : customer
-    PROVIDER_PROFILES ||--o{ REVIEWS : receives
-    JOBS ||--o{ DISPUTES : disputed_in
-    USERS ||--o{ DISPUTES : opens
-    USERS o|--o{ DISPUTES : resolves
-    DISPUTES ||--o{ DISPUTE_EVIDENCE : supported_by
-    JOB_ATTACHMENTS ||--o{ DISPUTE_EVIDENCE : attached_as
-    USERS ||--o{ ADMIN_AUDIT_LOGS : acts
-    JOBS o|--o{ ADMIN_AUDIT_LOGS : action_on
-    DISPUTES o|--o{ ADMIN_AUDIT_LOGS : audit_for
+ JOBS ||--o| WARRANTIES : covered_by
+ PROVIDER_PROFILES ||--o{ WARRANTIES : provided_by
+ USERS ||--o{ WARRANTIES : accepts_terms
+ WARRANTIES ||--o{ WARRANTY_CLAIMS : claimed_under
+ USERS ||--o{ WARRANTY_CLAIMS : opens
+ JOBS ||--o| REVIEWS : reviewed_once
+ USERS ||--o{ REVIEWS : customer
+ PROVIDER_PROFILES ||--o{ REVIEWS : receives
+ JOBS ||--o{ DISPUTES : disputed_in
+ USERS ||--o{ DISPUTES : opens
+ USERS o|--o{ DISPUTES : resolves
+ DISPUTES ||--o{ DISPUTE_EVIDENCE : supported_by
+ JOB_ATTACHMENTS ||--o{ DISPUTE_EVIDENCE : attached_as
+ USERS ||--o{ ADMIN_AUDIT_LOGS : acts
+ JOBS o|--o{ ADMIN_AUDIT_LOGS : action_on
+ DISPUTES o|--o{ ADMIN_AUDIT_LOGS : audit_for
 
-    WARRANTIES {
-      uuid id PK
-      uuid job_id FK,UK
-      uuid provider_id FK
-      varchar status
-      integer duration_days
-      jsonb terms_snapshot
-      timestamptz starts_at
-      timestamptz ends_at
-    }
-    WARRANTY_CLAIMS {
-      uuid id PK
-      uuid warranty_id FK
-      uuid opened_by_user_id FK
-      text reason
-      varchar status
-      text resolution
-      timestamptz created_at
-      timestamptz closed_at
-    }
-    REVIEWS {
-      uuid id PK
-      uuid job_id FK,UK
-      uuid customer_user_id FK
-      uuid provider_id FK
-      smallint rating
-      text comment
-      boolean is_visible
-      timestamptz created_at
-    }
-    DISPUTES {
-      uuid id PK
-      uuid job_id FK
-      uuid opened_by_user_id FK
-      uuid resolved_by_admin_user_id FK
-      varchar type
-      text reason
-      varchar status
-      text resolution
-      timestamptz created_at
-      timestamptz resolved_at
-    }
-    DISPUTE_EVIDENCE {
-      uuid dispute_id PK,FK
-      uuid attachment_id PK,FK
-      uuid added_by_user_id FK
-      timestamptz created_at
-    }
-    ADMIN_AUDIT_LOGS {
-      uuid id PK
-      uuid actor_user_id FK
-      uuid job_id FK
-      uuid dispute_id FK
-      varchar action
-      text reason
-      jsonb before_state
-      jsonb after_state
-      timestamptz created_at
-    }
+ WARRANTIES {
+ uuid id PK
+ uuid job_id FK,UK
+ uuid provider_id FK
+ varchar status
+ integer duration_days
+ jsonb terms_snapshot
+ timestamptz starts_at
+ timestamptz ends_at
+ }
+ WARRANTY_CLAIMS {
+ uuid id PK
+ uuid warranty_id FK
+ uuid opened_by_user_id FK
+ text reason
+ varchar status
+ text resolution
+ timestamptz created_at
+ timestamptz closed_at
+ }
+ REVIEWS {
+ uuid id PK
+ uuid job_id FK,UK
+ uuid customer_user_id FK
+ uuid provider_id FK
+ smallint rating
+ text comment
+ boolean is_visible
+ timestamptz created_at
+ }
+ DISPUTES {
+ uuid id PK
+ uuid job_id FK
+ uuid opened_by_user_id FK
+ uuid resolved_by_admin_user_id FK
+ varchar type
+ text reason
+ varchar status
+ text resolution
+ timestamptz created_at
+ timestamptz resolved_at
+ }
+ DISPUTE_EVIDENCE {
+ uuid dispute_id PK,FK
+ uuid attachment_id PK,FK
+ uuid added_by_user_id FK
+ timestamptz created_at
+ }
+ ADMIN_AUDIT_LOGS {
+ uuid id PK
+ uuid actor_user_id FK
+ uuid job_id FK
+ uuid dispute_id FK
+ varchar action
+ text reason
+ jsonb before_state
+ jsonb after_state
+ timestamptz created_at
+ }
 ```
 
 ### 9.4 Data Dictionary ฉบับเต็ม 26 ตาราง
 
-ชนิดเงินใน v1.8 ใช้ `numeric(12,2)` และ `currency char(3)` (`THB` ใน Demo); ไม่ใช้ floating point. ทุก UUID สร้างโดยแอป; เวลาใช้ `timestamptz DEFAULT now()` ยกเว้นระบุเป็น nullable. ตารางใน §9.4 รวมความหมายและกฎของคอลัมน์ครบทั้ง 26 ตาราง; SQL ที่ลิงก์เป็น canonical สำหรับชนิดจริง, nullability, key และ constraint. §3 เป็น dictionary ของ baseline v1.7 เท่านั้น ไม่ใช่ dictionary ปัจจุบัน.
+ชนิดเงินใน 1.0 ใช้ `numeric(12,2)` และ `currency char(3)` (`THB` ใน Demo); ไม่ใช้ floating point. ทุก UUID สร้างโดยแอป; เวลาใช้ `timestamptz DEFAULT now()` ยกเว้นระบุเป็น nullable. ตารางใน §9.4 รวมความหมายและกฎของคอลัมน์ครบทั้ง 26 ตาราง; SQL ที่ลิงก์เป็น canonical สำหรับชนิดจริง, nullability, key และ constraint. §3 เป็น dictionary ของ baseline 1.0 เท่านั้น ไม่ใช่ dictionary ปัจจุบัน.
 
-[SQL schema ฉบับเต็มสำหรับ Demo v1.8](fixtech-demo-v1.8-drawdb.sql)
+[SQL schema ฉบับเต็มสำหรับ Fixtech 1.0](fixtech-demo-v1.8-drawdb.sql)
 
 | ตาราง / คอลัมน์ | ชนิด / null | Key / constraint | ความหมายและข้อบังคับ |
 |---|---|---|---|
@@ -644,9 +644,9 @@ erDiagram
 | `service_catalog.label` | `varchar(120) NOT NULL` | — | ข้อความแสดง workflow |
 | `service_catalog.is_active` | `boolean NOT NULL DEFAULT true` | — | ปิดตัวเลือกโดยไม่ลบความสัมพันธ์เก่า |
 | `provider_services.provider_id` | `uuid NOT NULL` | PK part, FK → `provider_profiles.id` | Provider ที่รับความสามารถนี้ |
-| `provider_services.category` / `service_format` | `varchar(20) NOT NULL` | composite PK/FK → `service_catalog` | คู่ workflow ที่ provider รับ; แทน composite FK ไป `price_fixtures` ใน v1.7 |
+| `provider_services.category` / `service_format` | `varchar(20) NOT NULL` | composite PK/FK → `service_catalog` | คู่ workflow ที่ provider รับ; แทน composite FK ไป `price_fixtures` ใน 1.0 |
 | `provider_districts.provider_id` / `district_code` | `uuid/varchar(30) NOT NULL` | composite PK; FK → provider/district | เขตที่ provider รับงาน; uniqueness ป้องกันรายการซ้ำ |
-| `jobs.category` | `varchar(20) NOT NULL` | composite FK → `service_catalog(category, service_format)` | หมวด workflow ของงาน; เป็นคอลัมน์ target v1.8 แทนการอนุมานจาก `price_fixture_id` |
+| `jobs.category` | `varchar(20) NOT NULL` | composite FK → `service_catalog(category, service_format)` | หมวด workflow ของงาน; เป็นคอลัมน์ target 1.0 แทนการอนุมานจาก `price_fixture_id` |
 | `jobs.service_format` | `varchar(20) NOT NULL` | composite FK → `service_catalog(category, service_format)` | รูปแบบบริการของงาน; ใช้คู่ category เดียวกัน |
 | `jobs.status` | `varchar(40) NOT NULL` | CHECK | คงค่าหลักเดิมและเพิ่ม `WAITING_FOR_APPOINTMENT`, `SCHEDULED`, `DISPUTED`; transitions ตามขั้น 2 §10.3/ขั้น 3 §7.3 |
 | `jobs.agreed_amount` | `numeric(12,2) NULL` | CHECK > 0 | ยอดราคาที่ลูกค้ายอมรับ; B2C มาจาก estimate ยอดเดียว, B2B มาจาก offer ที่เลือก; ต้องมีพร้อมผู้ยืนยัน/เวลา ก่อนเข้าสถานะ SCHEDULED |
@@ -699,7 +699,7 @@ erDiagram
 | `job_messages.id` | `uuid NOT NULL` | PK | ข้อความ async หนึ่งรายการ |
 | `job_messages.job_id` | `uuid NOT NULL` | FK → `jobs.id`, index `(job_id, created_at, id)` | Job ที่สนทนา |
 | `job_messages.sender_user_id` | `uuid NOT NULL` | FK → `users.id` | owner หรือ assigned provider เท่านั้น |
-| `job_messages.body` | `varchar(2000) NOT NULL` | trim/non-empty | plain text; sanitize output; ไม่รับ chat file ใน v1.8 |
+| `job_messages.body` | `varchar(2000) NOT NULL` | trim/non-empty | plain text; sanitize output; ไม่รับ chat file ใน 1.0 |
 | `job_messages.created_at` | `timestamptz NOT NULL` | server time | เวลาส่ง |
 | `notifications.id` | `uuid NOT NULL` | PK | in-app notification |
 | `notifications.user_id` | `uuid NOT NULL` | FK → `users.id`, index `(user_id, created_at DESC)` | recipient ผู้มีสิทธิ์ |
@@ -827,10 +827,10 @@ erDiagram
 | `price_estimates.created_at` | `timestamptz NOT NULL DEFAULT now()` | — | เวลาบันทึก snapshot/ผล unavailable |
 | `appointments.created_at` | `timestamptz NOT NULL DEFAULT now()` | — | เวลาสร้าง proposal |
 
-### 9.5 การเปลี่ยน schema core จาก v1.7
+### 9.5 การเปลี่ยน schema core จาก 1.0
 
 1. `PRICE_FIXTURES` แบบราคา 250/400 และ range คงที่ **ไม่เป็น source สำหรับหน้ารัน Demo**. ใช้ `SERVICE_CATALOG(category, service_format)` เป็น lookup workflow; static fixture คงได้เฉพาะ automated tests.
-2. ใน target v1.8 ให้ `JOBS` เก็บ `category` และ `service_format` เป็น FK คู่ไป `SERVICE_CATALOG`; ไม่ใช้ `price_fixture_id`. ย้ายช่วง/ยอด snapshot ไป `PRICE_ESTIMATES`; `jobs.price_min_snapshot`/`price_max_snapshot` จาก v1.7 เลิกเป็น source of truth และไม่สร้างซ้ำใน fresh schema.
+2. ใน target 1.0 ให้ `JOBS` เก็บ `category` และ `service_format` เป็น FK คู่ไป `SERVICE_CATALOG`; ไม่ใช้ `price_fixture_id`. ย้ายช่วง/ยอด snapshot ไป `PRICE_ESTIMATES`; `jobs.price_min_snapshot`/`price_max_snapshot` จาก 1.0 เลิกเป็น source of truth และไม่สร้างซ้ำใน fresh schema.
 3. `jobs.ai_summary` เป็นค่าปัจจุบันที่ใช้แสดงผล; รายละเอียด version/provider/model/result เก็บใน `AI_ANALYSIS_RUNS`. `analysis_version` และ `confirmed_analysis_version` ยังคงเป็น pointer/state ที่ API ตรวจ.
 4. B2B `OFFERS` ยังเป็นข้อมูล provider seed/simulation; ต้องติดป้ายว่าไม่ใช่ quote จากช่างจริง. `amount` เป็นข้อมูล offer แยกจาก live market estimate; หากไม่ผ่านเงื่อนไขราคาที่แสดง ต้องให้ลูกค้ายืนยันราคาใหม่ ห้ามแอบแก้ snapshot.
 
@@ -850,16 +850,16 @@ erDiagram
 
 ### 9.7 Expanded traceability กับขั้น 1–3
 
-| SRS v1.8 | Use Case/API ขั้น 2 | Activity ขั้น 3 | ER/Data ขั้น 4 |
+| SRS 1.0 | Use Case/API ขั้น 2 | Activity ขั้น 3 | ER/Data ขั้น 4 |
 |---|---|---|---|
 | §13.2 AI/ภาพ/ราคา (source ปัจจุบันดู SRS §13.7) | UC-07; upload, consent, analyze, price estimate | §7.1 | `SERVICE_CATALOG`, attachments, consent, AI runs, rule sets, estimates |
 | §13.2 chat/notifications | UC-08; messages/notifications | §7.2 | `JOB_MESSAGES`, `NOTIFICATIONS` |
 | §13.2 appointments/payment simulation | UC-08/09; appointment/payment routes | §7.2–7.3 | `APPOINTMENTS`, `PAYMENT_SIMULATIONS` |
 | §13.2 warranty/reviews/disputes | UC-10; claims/review/dispute/Admin | §7.2–7.4 | `WARRANTIES`, `WARRANTY_CLAIMS`, `REVIEWS`, `DISPUTES`, evidence, audit |
 
-**ความพร้อมขั้น 5:** ใช้ [DDL สำหรับติดตั้งฐาน Demo ใหม่](../release/FixTech-demo-v1.8.database.sql) เฉพาะกับฐานว่าง; [SQL สำหรับ drawDB](fixtech-demo-v1.8-drawdb.sql) เป็น DDL เดียวกันโดยไม่มี wrapper transaction. DDL และ workflow PostgreSQL v1.8.4 ผ่านบน disposable cluster ตาม [validation report](validation.md) เมื่อ 2026-09-25; ห้ามนำไป migrate/ทับฐาน FixTech v4 หรือฐานข้อมูลที่มีข้อมูล. ใช้ข้อมูลสังเคราะห์, private local storage และ retention 30 วันตาม SRS NFR-016.
+**ความพร้อมขั้น 5:** ใช้ [DDL สำหรับติดตั้งฐาน Demo ใหม่](../release/FixTech-demo-v1.8.database.sql) เฉพาะกับฐานว่าง [SQL สำหรับ drawDB](fixtech-demo-v1.8-drawdb.sql) เป็น DDL เดียวกันแต่ไม่มี transaction wrapper การติดตั้ง DDL และ workflow PostgreSQL ผ่านบน cluster ที่ทิ้งได้ตาม [ผลตรวจระบบ](validation.md) ห้ามนำไป migrate หรือทับฐาน FixTech v4/ฐานที่มีข้อมูลสำคัญ ใช้ข้อมูลสังเคราะห์, private local storage และ retention 30 วันตาม SRS NFR-016
 
-> **ข้อสรุปขั้น 5 ปัจจุบัน (v1.8.4):** ไม่เปลี่ยนตารางหรือความสัมพันธ์ `ai_analysis_runs` เก็บ provider/model/output ของ Ollama และหลักฐานความยินยอม ส่วน `price_estimates.source_snapshot` เก็บ `referenceType=CURATED_PUBLIC_EXAMPLES`, วันที่ทบทวน, URL แหล่งข้อมูล, ช่วงราคาที่เลือก, หมายเหตุ, input และเวอร์ชันสูตร ข้อมูลเหล่านี้เป็นตัวอย่างสาธารณะที่คัดเลือกไว้ ไม่ใช่ราคาตลาดสด การตรวจ DDL/workflow ผ่านบน PostgreSQL ที่ทิ้งได้เมื่อ 25 กันยายน 2026 ดูผลและข้อจำกัดล่าสุดใน [รายงานการตรวจรับ](validation.md) ข้อความเก่าเรื่องตลาดสดด้านบนไม่ใช่ขอบเขต Demo ปัจจุบัน
+> **ข้อสรุปขั้น 5 (1.0):** ไม่เปลี่ยนตารางหรือความสัมพันธ์ `ai_analysis_runs` เก็บ provider/model/output ของ Ollama และหลักฐานความยินยอม ส่วน `price_estimates.source_snapshot` เก็บ `referenceType=CURATED_PUBLIC_EXAMPLES`, เวลาทบทวน, URL แหล่งข้อมูล, ช่วงราคาที่เลือก, หมายเหตุ, input และเวอร์ชันสูตร ข้อมูลเหล่านี้เป็นตัวอย่างสาธารณะที่คัดเลือกไว้ ไม่ใช่ราคาตลาดสด DDL และ workflow ผ่านการตรวจบน PostgreSQL ที่ทิ้งได้ ดูรายละเอียดใน [ผลตรวจระบบ](validation.md)
 
 ### 9.8 ภาพรวม ER Diagram ครบ 26 ตารางจาก SQL
 
@@ -867,199 +867,199 @@ erDiagram
 
 [เปิดภาพ ER Diagram 26 ตารางแบบขยาย](fixtech-demo-v1.8-26-tables.svg)
 
-![ER Diagram ภาพรวม 26 ตารางและความสัมพันธ์หลักของ Fixtech Demo v1.8](fixtech-demo-v1.8-26-tables.svg)
+![ER Diagram ภาพรวม 26 ตารางและความสัมพันธ์หลักของ Fixtech 1.0](fixtech-demo-v1.8-26-tables.svg)
 
 ```mermaid
 erDiagram
-    USERS ||--o| COMPANY_PROFILES : company_account
-    USERS ||--o| PROVIDER_PROFILES : technician_account
-    USERS ||--o{ JOBS : owns
-    USERS o|--o{ JOBS : agrees_price
-    DISTRICTS ||--o{ JOBS : requested_in
-    SERVICE_CATALOG ||--o{ JOBS : work_type
-    PROVIDER_PROFILES o|--o{ JOBS : assigned_to
-    PROVIDER_PROFILES ||--o{ PROVIDER_SERVICES : offers_service
-    SERVICE_CATALOG ||--o{ PROVIDER_SERVICES : available_work_type
-    PROVIDER_PROFILES ||--o{ PROVIDER_DISTRICTS : covers
-    DISTRICTS ||--o{ PROVIDER_DISTRICTS : covered_district
-    JOBS ||--o{ OFFERS : receives
-    PROVIDER_PROFILES ||--o{ OFFERS : proposes
-    JOBS ||--|{ JOB_STATUS_EVENTS : records
-    USERS ||--o{ JOB_STATUS_EVENTS : acts
-    JOBS ||--o{ JOB_ATTACHMENTS : contains
-    USERS ||--o{ JOB_ATTACHMENTS : uploads
-    JOBS ||--o{ AI_CONSENTS : records_consent
-    USERS ||--o{ AI_CONSENTS : consents
-    JOBS ||--o{ AI_ANALYSIS_RUNS : analyzed_in
-    AI_CONSENTS ||--o{ AI_ANALYSIS_RUNS : authorizes
-    AI_ANALYSIS_RUNS ||--o{ AI_RUN_ATTACHMENTS : selects
-    JOB_ATTACHMENTS ||--o{ AI_RUN_ATTACHMENTS : selected_image
-    JOBS ||--o{ PRICE_ESTIMATES : estimated_for
-    USERS o|--o{ PRICE_ESTIMATES : accepts
-    AI_ANALYSIS_RUNS o|--o{ PRICE_ESTIMATES : context_for
-    PRICING_RULE_SETS ||--o{ PRICE_ESTIMATES : calculates
-    SERVICE_CATALOG ||--o{ PRICE_ESTIMATES : prices_work_type
-    JOBS ||--o{ JOB_MESSAGES : conversation
-    USERS ||--o{ JOB_MESSAGES : sends
-    USERS ||--o{ NOTIFICATIONS : receives
-    JOBS o|--o{ NOTIFICATIONS : about
-    JOBS ||--o{ APPOINTMENTS : schedules
-    PROVIDER_PROFILES ||--o{ APPOINTMENTS : attends
-    USERS ||--o{ APPOINTMENTS : proposes
-    USERS o|--o{ APPOINTMENTS : cancels
-    APPOINTMENTS o|--o{ APPOINTMENTS : superseded_by
-    JOBS ||--o{ PAYMENT_SIMULATIONS : payment_record
-    USERS ||--o{ PAYMENT_SIMULATIONS : initiates
-    USERS o|--o{ PAYMENT_SIMULATIONS : confirms
-    JOBS ||--o| WARRANTIES : warranty
-    PROVIDER_PROFILES ||--o{ WARRANTIES : provides
-    USERS ||--o{ WARRANTIES : accepts_terms
-    WARRANTIES ||--o{ WARRANTY_CLAIMS : claims
-    USERS ||--o{ WARRANTY_CLAIMS : opens_claim
-    JOBS ||--o| REVIEWS : receives_review
-    USERS ||--o{ REVIEWS : writes_review
-    PROVIDER_PROFILES ||--o{ REVIEWS : reviewed_provider
-    JOBS ||--o{ DISPUTES : dispute
-    USERS ||--o{ DISPUTES : opens_dispute
-    USERS o|--o{ DISPUTES : resolves
-    DISPUTES ||--o{ DISPUTE_EVIDENCE : evidence
-    JOB_ATTACHMENTS ||--o{ DISPUTE_EVIDENCE : evidence_image
-    USERS ||--o{ DISPUTE_EVIDENCE : adds_evidence
-    USERS ||--o{ ADMIN_AUDIT_LOGS : admin_action
-    JOBS o|--o{ ADMIN_AUDIT_LOGS : audited_job
-    DISPUTES o|--o{ ADMIN_AUDIT_LOGS : audited_dispute
+ USERS ||--o| COMPANY_PROFILES : company_account
+ USERS ||--o| PROVIDER_PROFILES : technician_account
+ USERS ||--o{ JOBS : owns
+ USERS o|--o{ JOBS : agrees_price
+ DISTRICTS ||--o{ JOBS : requested_in
+ SERVICE_CATALOG ||--o{ JOBS : work_type
+ PROVIDER_PROFILES o|--o{ JOBS : assigned_to
+ PROVIDER_PROFILES ||--o{ PROVIDER_SERVICES : offers_service
+ SERVICE_CATALOG ||--o{ PROVIDER_SERVICES : available_work_type
+ PROVIDER_PROFILES ||--o{ PROVIDER_DISTRICTS : covers
+ DISTRICTS ||--o{ PROVIDER_DISTRICTS : covered_district
+ JOBS ||--o{ OFFERS : receives
+ PROVIDER_PROFILES ||--o{ OFFERS : proposes
+ JOBS ||--|{ JOB_STATUS_EVENTS : records
+ USERS ||--o{ JOB_STATUS_EVENTS : acts
+ JOBS ||--o{ JOB_ATTACHMENTS : contains
+ USERS ||--o{ JOB_ATTACHMENTS : uploads
+ JOBS ||--o{ AI_CONSENTS : records_consent
+ USERS ||--o{ AI_CONSENTS : consents
+ JOBS ||--o{ AI_ANALYSIS_RUNS : analyzed_in
+ AI_CONSENTS ||--o{ AI_ANALYSIS_RUNS : authorizes
+ AI_ANALYSIS_RUNS ||--o{ AI_RUN_ATTACHMENTS : selects
+ JOB_ATTACHMENTS ||--o{ AI_RUN_ATTACHMENTS : selected_image
+ JOBS ||--o{ PRICE_ESTIMATES : estimated_for
+ USERS o|--o{ PRICE_ESTIMATES : accepts
+ AI_ANALYSIS_RUNS o|--o{ PRICE_ESTIMATES : context_for
+ PRICING_RULE_SETS ||--o{ PRICE_ESTIMATES : calculates
+ SERVICE_CATALOG ||--o{ PRICE_ESTIMATES : prices_work_type
+ JOBS ||--o{ JOB_MESSAGES : conversation
+ USERS ||--o{ JOB_MESSAGES : sends
+ USERS ||--o{ NOTIFICATIONS : receives
+ JOBS o|--o{ NOTIFICATIONS : about
+ JOBS ||--o{ APPOINTMENTS : schedules
+ PROVIDER_PROFILES ||--o{ APPOINTMENTS : attends
+ USERS ||--o{ APPOINTMENTS : proposes
+ USERS o|--o{ APPOINTMENTS : cancels
+ APPOINTMENTS o|--o{ APPOINTMENTS : superseded_by
+ JOBS ||--o{ PAYMENT_SIMULATIONS : payment_record
+ USERS ||--o{ PAYMENT_SIMULATIONS : initiates
+ USERS o|--o{ PAYMENT_SIMULATIONS : confirms
+ JOBS ||--o| WARRANTIES : warranty
+ PROVIDER_PROFILES ||--o{ WARRANTIES : provides
+ USERS ||--o{ WARRANTIES : accepts_terms
+ WARRANTIES ||--o{ WARRANTY_CLAIMS : claims
+ USERS ||--o{ WARRANTY_CLAIMS : opens_claim
+ JOBS ||--o| REVIEWS : receives_review
+ USERS ||--o{ REVIEWS : writes_review
+ PROVIDER_PROFILES ||--o{ REVIEWS : reviewed_provider
+ JOBS ||--o{ DISPUTES : dispute
+ USERS ||--o{ DISPUTES : opens_dispute
+ USERS o|--o{ DISPUTES : resolves
+ DISPUTES ||--o{ DISPUTE_EVIDENCE : evidence
+ JOB_ATTACHMENTS ||--o{ DISPUTE_EVIDENCE : evidence_image
+ USERS ||--o{ DISPUTE_EVIDENCE : adds_evidence
+ USERS ||--o{ ADMIN_AUDIT_LOGS : admin_action
+ JOBS o|--o{ ADMIN_AUDIT_LOGS : audited_job
+ DISPUTES o|--o{ ADMIN_AUDIT_LOGS : audited_dispute
 
-    USERS {
-      uuid id PK
-    }
-    COMPANY_PROFILES {
-      uuid user_id PK,FK
-    }
-    PROVIDER_PROFILES {
-      uuid id PK
-      uuid user_id FK
-    }
-    DISTRICTS {
-      varchar code PK
-    }
-    SERVICE_CATALOG {
-      varchar category PK
-      varchar service_format PK
-    }
-    PROVIDER_SERVICES {
-      uuid provider_id PK,FK
-      varchar category PK,FK
-      varchar service_format PK,FK
-    }
-    PROVIDER_DISTRICTS {
-      uuid provider_id PK,FK
-      varchar district_code PK,FK
-    }
-    JOBS {
-      uuid id PK
-      uuid customer_user_id FK
-      varchar district_code FK
-      varchar category FK
-      varchar service_format FK
-      uuid assigned_provider_id FK
-      numeric agreed_amount
-      uuid agreed_by_user_id FK
-      timestamptz agreed_at
-    }
-    OFFERS {
-      uuid id PK
-      uuid job_id FK
-      uuid provider_id FK
-    }
-    JOB_STATUS_EVENTS {
-      uuid id PK
-      uuid job_id FK
-      uuid actor_user_id FK
-    }
-    JOB_ATTACHMENTS {
-      uuid id PK
-      uuid job_id FK
-      uuid uploaded_by_user_id FK
-    }
-    AI_CONSENTS {
-      uuid id PK
-      uuid job_id FK
-      uuid user_id FK
-    }
-    AI_ANALYSIS_RUNS {
-      uuid id PK
-      uuid job_id FK
-      uuid consent_id FK
-    }
-    AI_RUN_ATTACHMENTS {
-      uuid analysis_run_id PK,FK
-      uuid attachment_id PK,FK
-    }
-    PRICING_RULE_SETS {
-      uuid id PK
-    }
-    PRICE_ESTIMATES {
-      uuid id PK
-      uuid job_id FK
-      uuid analysis_run_id FK
-      uuid rule_set_id FK
-      uuid accepted_by_user_id FK
-    }
-    JOB_MESSAGES {
-      uuid id PK
-      uuid job_id FK
-      uuid sender_user_id FK
-    }
-    NOTIFICATIONS {
-      uuid id PK
-      uuid user_id FK
-      uuid job_id FK
-    }
-    APPOINTMENTS {
-      uuid id PK
-      uuid job_id FK
-      uuid provider_id FK
-      uuid proposed_by_user_id FK
-      uuid supersedes_id FK
-      uuid cancelled_by_user_id FK
-    }
-    PAYMENT_SIMULATIONS {
-      uuid id PK
-      uuid job_id FK
-      uuid initiated_by_user_id FK
-      uuid confirmed_by_user_id FK
-    }
-    WARRANTIES {
-      uuid id PK
-      uuid job_id FK
-      uuid provider_id FK
-      uuid accepted_by_user_id FK
-    }
-    WARRANTY_CLAIMS {
-      uuid id PK
-      uuid warranty_id FK
-      uuid opened_by_user_id FK
-    }
-    REVIEWS {
-      uuid id PK
-      uuid job_id FK
-      uuid customer_user_id FK
-      uuid provider_id FK
-    }
-    DISPUTES {
-      uuid id PK
-      uuid job_id FK
-      uuid opened_by_user_id FK
-    }
-    DISPUTE_EVIDENCE {
-      uuid dispute_id PK,FK
-      uuid attachment_id PK,FK
-      uuid added_by_user_id FK
-    }
-    ADMIN_AUDIT_LOGS {
-      uuid id PK
-      uuid actor_user_id FK
-      uuid job_id FK
-      uuid dispute_id FK
-    }
+ USERS {
+ uuid id PK
+ }
+ COMPANY_PROFILES {
+ uuid user_id PK,FK
+ }
+ PROVIDER_PROFILES {
+ uuid id PK
+ uuid user_id FK
+ }
+ DISTRICTS {
+ varchar code PK
+ }
+ SERVICE_CATALOG {
+ varchar category PK
+ varchar service_format PK
+ }
+ PROVIDER_SERVICES {
+ uuid provider_id PK,FK
+ varchar category PK,FK
+ varchar service_format PK,FK
+ }
+ PROVIDER_DISTRICTS {
+ uuid provider_id PK,FK
+ varchar district_code PK,FK
+ }
+ JOBS {
+ uuid id PK
+ uuid customer_user_id FK
+ varchar district_code FK
+ varchar category FK
+ varchar service_format FK
+ uuid assigned_provider_id FK
+ numeric agreed_amount
+ uuid agreed_by_user_id FK
+ timestamptz agreed_at
+ }
+ OFFERS {
+ uuid id PK
+ uuid job_id FK
+ uuid provider_id FK
+ }
+ JOB_STATUS_EVENTS {
+ uuid id PK
+ uuid job_id FK
+ uuid actor_user_id FK
+ }
+ JOB_ATTACHMENTS {
+ uuid id PK
+ uuid job_id FK
+ uuid uploaded_by_user_id FK
+ }
+ AI_CONSENTS {
+ uuid id PK
+ uuid job_id FK
+ uuid user_id FK
+ }
+ AI_ANALYSIS_RUNS {
+ uuid id PK
+ uuid job_id FK
+ uuid consent_id FK
+ }
+ AI_RUN_ATTACHMENTS {
+ uuid analysis_run_id PK,FK
+ uuid attachment_id PK,FK
+ }
+ PRICING_RULE_SETS {
+ uuid id PK
+ }
+ PRICE_ESTIMATES {
+ uuid id PK
+ uuid job_id FK
+ uuid analysis_run_id FK
+ uuid rule_set_id FK
+ uuid accepted_by_user_id FK
+ }
+ JOB_MESSAGES {
+ uuid id PK
+ uuid job_id FK
+ uuid sender_user_id FK
+ }
+ NOTIFICATIONS {
+ uuid id PK
+ uuid user_id FK
+ uuid job_id FK
+ }
+ APPOINTMENTS {
+ uuid id PK
+ uuid job_id FK
+ uuid provider_id FK
+ uuid proposed_by_user_id FK
+ uuid supersedes_id FK
+ uuid cancelled_by_user_id FK
+ }
+ PAYMENT_SIMULATIONS {
+ uuid id PK
+ uuid job_id FK
+ uuid initiated_by_user_id FK
+ uuid confirmed_by_user_id FK
+ }
+ WARRANTIES {
+ uuid id PK
+ uuid job_id FK
+ uuid provider_id FK
+ uuid accepted_by_user_id FK
+ }
+ WARRANTY_CLAIMS {
+ uuid id PK
+ uuid warranty_id FK
+ uuid opened_by_user_id FK
+ }
+ REVIEWS {
+ uuid id PK
+ uuid job_id FK
+ uuid customer_user_id FK
+ uuid provider_id FK
+ }
+ DISPUTES {
+ uuid id PK
+ uuid job_id FK
+ uuid opened_by_user_id FK
+ }
+ DISPUTE_EVIDENCE {
+ uuid dispute_id PK,FK
+ uuid attachment_id PK,FK
+ uuid added_by_user_id FK
+ }
+ ADMIN_AUDIT_LOGS {
+ uuid id PK
+ uuid actor_user_id FK
+ uuid job_id FK
+ uuid dispute_id FK
+ }
 ```

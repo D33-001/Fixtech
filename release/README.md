@@ -1,13 +1,13 @@
-# ติดตั้ง Fixtech Demo v1.8
+# ติดตั้ง Fixtech 1.0
 
-ไฟล์ `FixTech-demo-v1.8.database.sql` สร้าง schema Demo v1.8 บน **ฐานข้อมูลว่างเท่านั้น** และทำงานใน transaction เดียว. ไฟล์นี้ไม่ใช่ migration จาก FixTech v4; อย่ารันกับฐาน v4 หรือฐานที่มีข้อมูลซึ่งต้องเก็บ.
+ไฟล์ `FixTech-demo-v1.8.database.sql` สร้าง schema ระบบสาธิต 1.0 บน **ฐานข้อมูลว่างเท่านั้น** และทำงานใน transaction เดียว. ไฟล์นี้ไม่ใช่ migration จาก FixTech v4; อย่ารันกับฐาน v4 หรือฐานที่มีข้อมูลซึ่งต้องเก็บ.
 
 Schema ไม่มีการสร้าง UUID ด้วย database extension; ให้แอปสร้าง UUID ตาม Data Model. ไม่ต้องติดตั้ง extensions.
 
 ตัวอย่าง PowerShell โดยแทนชื่อฐานและผู้ใช้ให้ตรงสภาพแวดล้อม:
 
 ```powershell
-psql -X -v ON_ERROR_STOP=1 -d fixtech_demo_v18 -f release/FixTech-demo-v1.8.database.sql
+psql -X -v ON_ERROR_STOP=1 -d fixtech_demo_v18 -f release/FixTech-demo-1.0.database.sql
 ```
 
 ใช้บัญชี migration ที่มีสิทธิ์ DDL. อย่าใช้บัญชีฐานข้อมูลเจ้าของ schema เป็น credential ของเว็บ. ก่อนเปิดให้ backend ต่อฐาน ต้องกำหนด role/privilege ให้ least privilege และทำ authorization ใน server ตาม SRS; การสร้างบทบาทและ RLS ของ FixTech v4 ไม่ได้ใช้กับ schema นี้.

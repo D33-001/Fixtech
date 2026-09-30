@@ -1,8 +1,8 @@
-# Fixtech Demo v1.8 — ขั้นตอนที่ 5: API และกฎการเปลี่ยนสถานะงาน
+# Fixtech 1.0 — ขั้นตอนที่ 5: API และกฎการเปลี่ยนสถานะงาน
 
-**สถานะเอกสาร:** API contract สำหรับ implementation ปัจจุบันของ Demo v1.8 และจุดอ้างอิงเชื่อมขั้น 1–4; ไม่ใช่ production API specification  
-**Base URL:** API ทุก route ใช้ prefix `/api` (เช่น `POST /api/jobs`)  
-**รูปแบบ:** JSON UTF-8; เวลา ISO 8601 และเก็บเป็น `timestamptz`; ID เป็น UUID  
+**สถานะเอกสาร:** API contract สำหรับ implementation ปัจจุบันของ ระบบสาธิต 1.0 และจุดอ้างอิงเชื่อมขั้น 1–4; ไม่ใช่ production API specification
+**Base URL:** API ทุก route ใช้ prefix `/api` (เช่น `POST /api/jobs`)
+**รูปแบบ:** JSON UTF-8; เวลา ISO 8601 และเก็บเป็น `timestamptz`; ID เป็น UUID
 **ขอบเขตปัจจุบัน:** บัญชี seed, ข้อมูลสังเคราะห์, payment simulation; AI ผ่าน Ollama/Gemma 3 4B แบบ local และราคาอ้างอิงคัดสรรตาม §9. ไม่ใช่ production API และไม่อ้างราคา live market.
 
 เอกสารนี้ยึดพฤติกรรมที่ implement และทดสอบใน `src/api.js` กับ DDL จริงใน `release/FixTech-demo-v1.8.database.sql`. Wireframe ของหน้าจอผู้ใช้ที่ผูกกับ contract นี้อยู่ใน [ขั้น 6](wireframes-v1.md); หากภาพร่างไม่ตรง API/state ให้ยึด contract นี้และแก้ wireframe ก่อน implement. ถ้า API รุ่นนี้ไม่ตรงกับรายละเอียด route/field เก่าของขั้น 2 ให้ยึดเอกสารขั้น 5 สำหรับ implementation ที่มีอยู่ และเปิดรายการปรับเอกสารขั้น 2–4 ใน §8 ก่อนเพิ่ม feature ใหม่. Contract tests ด้วย doubles ไม่ถือเป็นการผ่าน runtime smoke test กับ Ollama ที่เครื่องเดโม.
@@ -98,11 +98,11 @@
 
 ```text
 DRAFT → READY_TO_PUBLISH → POSTED
-  ├─ B2C: MATCHED → WAITING_FOR_APPOINTMENT
-  ├─ B2B: WAITING_FOR_SELECTION → ASSIGNED → WAITING_FOR_APPOINTMENT
-  └─ ไม่มี provider ที่เข้าเกณฑ์: NO_PROVIDER_FOUND
+ ├─ B2C: MATCHED → WAITING_FOR_APPOINTMENT
+ ├─ B2B: WAITING_FOR_SELECTION → ASSIGNED → WAITING_FOR_APPOINTMENT
+ └─ ไม่มี provider ที่เข้าเกณฑ์: NO_PROVIDER_FOUND
 WAITING_FOR_APPOINTMENT → SCHEDULED → IN_PROGRESS
-  → WAITING_FOR_CUSTOMER_CONFIRMATION → COMPLETED
+ → WAITING_FOR_CUSTOMER_CONFIRMATION → COMPLETED
 ```
 
 | จาก | ไปได้ | Trigger/guard ที่บังคับ |
@@ -163,13 +163,13 @@ WAITING_FOR_APPOINTMENT → SCHEDULED → IN_PROGRESS
 
 ข้อสรุปการเชื่อมขั้น: SRS กำหนด scope/acceptance; Step 2 ระบุ actors/use cases; Step 3 แสดงลำดับกิจกรรม; Step 4 บังคับ foreign keys, checks, unique constraints และ event storage; Step 5 ผูกทั้งหมดเป็น API/guard/transition/test ที่ implement ได้. การปรับ adapter/pricing ใน §9 ไม่เปลี่ยน 26-table schema หรือ core workflow. ต้องผ่าน runtime smoke test กับ Ollama ก่อนอ้างว่าผ่าน AI runtime; curated price examples ไม่ใช่ข้อมูลตลาดสด.
 
-## 9. คำตัดสิน Integration และราคา — Demo v1.8.4
+## 9. คำตัดสิน Integration และราคา — ระบบสาธิต 1.0
 
 > **ผลขั้น 7:** สูตร/validation/freshness และ deterministic matching implement ตาม [เอกสารขั้น 7](step-7-pricing-matching-decisions.md) แล้ว. PostgreSQL disposable workflow ผ่าน 30/30 ไม่มี skip ในรอบตรวจล่าสุด; browser ยืนยันทั้งหน้าราคาปกติและ stale-reference error ตาม validation report.
 
 ส่วนนี้แทนข้อความก่อนหน้าในเอกสารขั้น 1–5 ที่กำหนดให้ใช้ external AI และ live-market API สำหรับ Demo; ไม่แก้ requirement ของบริการ production.
 
-- **AI:** runtime adapter `AI_PROVIDER=ollama`, default `OLLAMA_BASE_URL=http://127.0.0.1:11434`, `OLLAMA_MODEL=gemma3:4b`. อนุญาตเฉพาะ loopback URL, มี request timeout, ส่งเฉพาะข้อความ/ภาพที่ consent ครอบคลุม และตรวจ JSON schema; text PII redaction เป็น best effort เท่านั้น ไม่รับประกันลบครบ. มี narrow post-check สำหรับ pattern คำแนะนำเสี่ยงที่รู้จัก; ไม่ใช่ safety moderation ที่ครอบคลุม. Factory ปฏิเสธ Ollama เมื่อ `NODE_ENV=production`; local model ไม่ใช่ production AI. Live app smoke ผ่านข้อความ/ภาพ/แชต/ราคา curated บนฐานชั่วคราว 2026-09-25; output quality ยังไม่ certified. ใช้ข้อมูลสังเคราะห์เท่านั้น.
+- **AI:** runtime adapter `AI_PROVIDER=ollama`, default `OLLAMA_BASE_URL=http://127.0.0.1:11434`, `OLLAMA_MODEL=gemma3:4b`. อนุญาตเฉพาะ loopback URL, มี request timeout, ส่งเฉพาะข้อความ/ภาพที่ consent ครอบคลุม และตรวจ JSON schema; text PII redaction เป็น best effort เท่านั้น ไม่รับประกันลบครบ. มี narrow post-check สำหรับ pattern คำแนะนำเสี่ยงที่รู้จัก; ไม่ใช่ safety moderation ที่ครอบคลุม. Factory ปฏิเสธ Ollama เมื่อ `NODE_ENV=production`; local model ไม่ใช่ production AI. แอปผ่าน smoke test สำหรับข้อความ ภาพ แชต และราคา curated บนฐานชั่วคราว แต่ยังไม่รับรองคุณภาพ output และต้องใช้ข้อมูลสังเคราะห์เท่านั้น
 - **ราคา:** `MARKET_PRICE_PROVIDER=curated_demo` ใช้ตัวอย่างราคาบริการที่ตรวจจากแหล่งสาธารณะพร้อม URL/วันทบทวนใน `src/integrations/demo-price-reference.js`. ช่วงปัจจุบันคือ remote software 300–2,500 บาทและ Hardware 500–800 บาท ซึ่งครอบคลุมระดับ/ผู้ให้บริการต่างกัน ไม่ใช่งานเทียบเคียงหรือ quote ของ Fixtech. Response ระบุ `referenceType=CURATED_PUBLIC_EXAMPLES`, `freshness=CURATED`, วันทบทวน และ source URLs; ไม่มี mapping ให้คืน `ESTIMATE_UNAVAILABLE`.
 - **สูตรราคาใน implementation:** อ้างอิง low/high จาก `CURATED_PUBLIC_EXAMPLES`, ไม่ใช่ live price. `round10((laborBase + referenceEndpoint × marketShare) × districtFactor × (1 + platformMarkupRate))`; ปัดใกล้สุดทีละ 10 บาท, ขั้นต่ำ 1 บาท. Active seed rules version 3: labor ฿180 SOFTWARE/ONLINE, ฿300 HARDWARE/ONSITE; `marketShare=0.7`; เขต BANG_NA=1, PATHUM_WAN=1.1, CHATUCHAK=1.05; markup สมมติ `0.15`; complexity/urgency multiplier คง 1.0. API รับ `{}` เท่านั้นและปฏิเสธ client fields ที่พยายามเปลี่ยนราคา. B2C ราคาเดียวจาก low endpoint; B2B คำนวณช่วง low/high. ไม่มีอัตราคอมมิชชัน ภาษี หรืออะไหล่ในสูตร; AI ไม่ตั้งราคา; references เป็นตัวอย่างต่างระดับไม่ใช่ quote เทียบงานตรงกัน. รายละเอียด/test vectors อยู่ใน [บันทึกขั้น 7](step-7-pricing-matching-decisions.md).
 - **Matching baseline ใน implementation ปัจจุบัน:** eligibility hard filters คือ provider approved + available + ตรง `category/service_format` และ `district_code`; เรียง `priority ASC, provider_id ASC`. B2C เลือกอันดับแรก; B2B ต้องมีอย่างน้อย 2 รายและสร้าง offers สาธิตให้สองอันดับแรก โดยยอดเป็น `estimated_min` และ `estimated_max` ตามลำดับ ไม่ใช่ quote จริงจากช่าง. `priority` เป็นลำดับ seed ไม่ใช่คะแนนผลงาน.

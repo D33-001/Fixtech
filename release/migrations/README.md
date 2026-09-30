@@ -1,6 +1,6 @@
-# Migration พื้นฐานสำหรับขยายสู่ production
+# Fixtech 1.0 — Migration พื้นฐานสำหรับขยายสู่ Production
 
-ไฟล์ `0001_production_foundations.sql` เพิ่ม 8 ตารางต่อจาก schema ของ Fixtech Demo v1.8 ตารางเหล่านี้เป็นเพียง **โครงสร้างพื้นฐาน** ไม่ได้หมายความว่าให้เปิด production mode หรือรับเงินจริงได้ทันที
+ไฟล์ `0001_production_foundations.sql` เพิ่ม 8 ตารางต่อจาก schema ของ Fixtech 1.0 ตารางเหล่านี้เป็นเพียง **โครงสร้างพื้นฐาน** ไม่ได้หมายความว่าให้เปิด production mode หรือรับเงินจริงได้ทันที
 
 ให้ทดลองติดตั้งบน PostgreSQL ฐานใหม่ที่ทิ้งได้ หลังติดตั้ง `release/FixTech-demo-v1.8.database.sql` แล้วเท่านั้น:
 
