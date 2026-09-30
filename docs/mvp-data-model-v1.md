@@ -144,7 +144,7 @@ erDiagram
 | `jobs` — `job_status_events` | 1 ต่อ 1..หลาย | เก็บประวัติสร้าง Draft และทุก transition; event ไม่ลบ/แก้ย้อนหลังผ่านแอป |
 | `users` — `job_status_events` | 1 ต่อ 0..หลาย | ผู้ใช้ที่เริ่มคำสั่งเปลี่ยนสถานะเป็น actor; event จาก API เก็บ actor ผู้เรียก ไม่สร้าง system account เพิ่ม |
 
-## 3. Data Dictionary
+## 3. พจนานุกรมข้อมูล (Data Dictionary)
 
 ชนิดข้อมูลด้านล่างเป็น PostgreSQL. `NOT NULL`/`NULL` ระบุการบังคับค่าระดับ schema; กฎที่ข้ามหลายแถวหรือตารางให้บังคับใน transaction ฝั่ง server ตาม §4.
 
@@ -378,7 +378,7 @@ erDiagram
 - [ ] API ใช้ parameterized query, session role และ owner จาก server; ไม่เชื่อ status/customer/provider IDs จาก client.
 - [ ] เอกสาร/หน้าจอระบุราคาและผล AI เป็นข้อมูลสาธิต; ไม่ชวนให้เข้าใจว่าเป็นราคาจริงหรือการซ่อมจริง.
 
-## 9. Expanded Demo v1.8 — Data Model Addendum
+## 9. ส่วนขยายแบบจำลองข้อมูลสำหรับ Demo v1.8
 
 หัวข้อนี้เป็น target data model หลังขยาย Demo และ **แทน** model v1.7 ในส่วนที่ขัดกัน. ตาราง core เดิม 10 ตารางยังเป็นฐาน แต่มีการปรับ pricing model และเพิ่ม domain entities ตาม feature set ใหม่. Target นี้มี 26 domain tables: 10 core/current tables (รวม `SERVICE_CATALOG` แทน `PRICE_FIXTURES`) และ 16 ตารางเพิ่มใน §9.1–9.3. Session store เป็น infrastructure ของ middleware; ไม่รวมใน domain ERD.
 
@@ -859,7 +859,7 @@ erDiagram
 
 **ความพร้อมขั้น 5:** ใช้ [DDL สำหรับติดตั้งฐาน Demo ใหม่](../release/FixTech-demo-v1.8.database.sql) เฉพาะกับฐานว่าง; [SQL สำหรับ drawDB](fixtech-demo-v1.8-drawdb.sql) เป็น DDL เดียวกันโดยไม่มี wrapper transaction. DDL และ workflow PostgreSQL v1.8.4 ผ่านบน disposable cluster ตาม [validation report](validation.md) เมื่อ 2026-09-25; ห้ามนำไป migrate/ทับฐาน FixTech v4 หรือฐานข้อมูลที่มีข้อมูล. ใช้ข้อมูลสังเคราะห์, private local storage และ retention 30 วันตาม SRS NFR-016.
 
-> **Current Step 5 decision (v1.8.4):** No table/relationship change. `ai_analysis_runs` stores Ollama provider/model/output and consent provenance. `price_estimates.source_snapshot` stores `referenceType=CURATED_PUBLIC_EXAMPLES`, reviewed date, source URLs, selected range, notes, inputs and pricing-rule version. These are curated public examples, not live market data. DDL/workflow verification passed on a disposable PostgreSQL cluster on 2026-09-25; latest results and limits are in [validation report](validation.md). Historical live-market wording above is not current Demo scope.
+> **ข้อสรุปขั้น 5 ปัจจุบัน (v1.8.4):** ไม่เปลี่ยนตารางหรือความสัมพันธ์ `ai_analysis_runs` เก็บ provider/model/output ของ Ollama และหลักฐานความยินยอม ส่วน `price_estimates.source_snapshot` เก็บ `referenceType=CURATED_PUBLIC_EXAMPLES`, วันที่ทบทวน, URL แหล่งข้อมูล, ช่วงราคาที่เลือก, หมายเหตุ, input และเวอร์ชันสูตร ข้อมูลเหล่านี้เป็นตัวอย่างสาธารณะที่คัดเลือกไว้ ไม่ใช่ราคาตลาดสด การตรวจ DDL/workflow ผ่านบน PostgreSQL ที่ทิ้งได้เมื่อ 25 กันยายน 2026 ดูผลและข้อจำกัดล่าสุดใน [รายงานการตรวจรับ](validation.md) ข้อความเก่าเรื่องตลาดสดด้านบนไม่ใช่ขอบเขต Demo ปัจจุบัน
 
 ### 9.8 ภาพรวม ER Diagram ครบ 26 ตารางจาก SQL
 

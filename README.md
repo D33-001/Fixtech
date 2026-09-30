@@ -52,13 +52,13 @@
 - [การติดตั้ง/การทำงาน](docs/operations.md)
 - [แผนตรวจสอบ](docs/validation.md)
 
-## Local development
+## การติดตั้งและพัฒนาในเครื่อง
 
-1. Install dependencies with `npm install` (Node.js 22.9+), then stay in this project folder in PowerShell.
-2. Create `.env` with `Copy-Item .env.example .env`, open it locally, and replace the sample values. `DATABASE_URL` must use credentials that can connect to the local disposable Demo database; `SESSION_SECRET` must be at least 32 bytes; `DEMO_SEED_PASSWORD` must be at least 12 characters. Never paste these secrets into chat or commit `.env`.
-3. In pgAdmin, create a **new empty** database named `fixtech_demo_v18`, open Query Tool for that database, and run `release/FixTech-demo-v1.8.database.sql`. The app's database role must have the required table read/write privileges. Never install this DDL on v4, production, or valuable data.
-4. Run `npm run setup:check -- --before-seed`. It checks local DB authentication and all 26 required tables without printing credentials. Fix any reported issue before continuing.
-5. If this database has not been seeded, run the seed once:
+1. ติดตั้ง dependency ด้วย `npm install` โดยใช้ Node.js 22.9 ขึ้นไป แล้วเปิด PowerShell ค้างอยู่ในโฟลเดอร์โครงการนี้
+2. สร้าง `.env` ด้วย `Copy-Item .env.example .env` แล้วเปิดไฟล์เพื่อเปลี่ยนค่าตัวอย่าง `DATABASE_URL` ต้องเชื่อมฐาน Demo ในเครื่องที่ทิ้งได้, `SESSION_SECRET` ต้องยาวอย่างน้อย 32 ไบต์ และ `DEMO_SEED_PASSWORD` อย่างน้อย 12 ตัวอักษร ห้ามส่ง secret เหล่านี้ในแชตหรือ commit `.env`
+3. ใน pgAdmin ให้สร้างฐาน **ใหม่และว่าง** ชื่อ `fixtech_demo_v18` เปิด Query Tool ของฐานนี้ แล้วรัน `release/FixTech-demo-v1.8.database.sql` บัญชีฐานข้อมูลของแอปต้องมีสิทธิ์อ่าน/เขียนตารางที่จำเป็น ห้ามติดตั้ง DDL นี้ทับ v4, production หรือฐานที่มีข้อมูลสำคัญ
+4. สั่ง `npm run setup:check -- --before-seed` เพื่อตรวจการยืนยันตัวตนกับฐานและตารางที่จำเป็น 26 ตารางโดยไม่แสดง credential ต้องแก้ทุกรายการที่รายงานก่อนทำต่อ
+5. หากฐานนี้ยังไม่เคย seed ให้สั่ง seed หนึ่งครั้ง:
 
    ```powershell
    $env:DEMO_SEED_ALLOW_MUTATION = 'yes'
@@ -66,15 +66,15 @@
    Remove-Item Env:DEMO_SEED_ALLOW_MUTATION
    ```
 
-   Seed uses the local `DEMO_SEED_PASSWORD` for all demo accounts and no longer prints the password. Do not seed repeatedly unless intentionally resetting a disposable demo database.
-6. Run `npm run setup:check`, `npm run check`, `npm test`, and `python -m unittest tests/check_demo_v18_schema.py`. The PostgreSQL workflow test is skipped unless `FIXTECH_TEST_DATABASE_URL` is explicitly configured for a disposable test database.
-7. Run `npm start` and keep that PowerShell window open. Then open `http://localhost:3000`; confirm `/api/health/ready` reports `ready` before logging in. All demo account passwords equal the local `DEMO_SEED_PASSWORD` value.
+    seed จะใช้ `DEMO_SEED_PASSWORD` ในเครื่องกับบัญชี Demo ทุกบัญชีและไม่พิมพ์รหัสผ่านออกมา ห้าม seed ซ้ำ เว้นแต่ตั้งใจ reset ฐาน Demo ที่ทิ้งได้
+6. สั่ง `npm run setup:check`, `npm run check`, `npm test` และ `python -m unittest tests/check_demo_v18_schema.py` การทดสอบ workflow ของ PostgreSQL จะถูกข้ามถ้าไม่ได้กำหนด `FIXTECH_TEST_DATABASE_URL` ให้ชี้ไปยังฐานทดสอบที่ทิ้งได้อย่างชัดเจน
+7. สั่ง `npm start` และเปิดหน้าต่าง PowerShell ค้างไว้ จากนั้นเข้า `http://localhost:3000` ตรวจว่า `/api/health/ready` รายงาน `ready` ก่อน login รหัสผ่านของบัญชี Demo ทุกบัญชีเท่ากับ `DEMO_SEED_PASSWORD` ในเครื่อง
 
-If Ollama/Gemma 3 4B is unavailable, set `AI_PROVIDER=disabled` in `.env`; the app can start but AI analysis is unavailable. For local AI, set `AI_PROVIDER=ollama` and run Ollama on loopback. Curated price references are not live market data; payment is simulation-only. This is a local student Demo, not a production deployment.
+ถ้า Ollama/Gemma 3 4B ใช้งานไม่ได้ ให้ตั้ง `AI_PROVIDER=disabled` ใน `.env` แอปยังเปิดได้แต่จะวิเคราะห์ด้วย AI ไม่ได้ หากต้องการ AI ในเครื่องให้ใช้ `AI_PROVIDER=ollama` และเปิด Ollama บน loopback ราคา curated ไม่ใช่ราคาตลาดสดและการชำระเงินเป็น simulation เท่านั้น ระบบนี้เป็น Demo นักศึกษาในเครื่อง ไม่ใช่ production deployment
 
-To verify the DDL on a real local PostgreSQL server, configure `SCHEMA_TEST_DATABASE_URL` in the ignored `.env` file with a migration account that can create databases, then follow [the disposable schema check](release/README.md). This is separate from the app's `DATABASE_URL`.
+เมื่อต้องการตรวจ DDL กับ PostgreSQL จริงในเครื่อง ให้กำหนด `SCHEMA_TEST_DATABASE_URL` ใน `.env` ที่ Git ไม่ติดตาม โดยใช้บัญชี migration ที่สร้างฐานได้ แล้วทำตาม [คู่มือตรวจ schema บนฐานที่ทิ้งได้](release/README.md) ค่านี้แยกจาก `DATABASE_URL` ของแอป
 
-The Demo workflow and local Ollama path were runtime-tested against PostgreSQL 18.6 on a disposable database; the full workflow suite passed with no skips. This does not constitute production readiness or certify AI accuracy/safety, real payment, email/SMS, or all production security requirements; see [validation status](docs/validation.md).
+workflow ของ Demo และเส้นทาง Ollama ในเครื่องผ่านการทดสอบขณะรันจริงกับ PostgreSQL 18.6 บนฐานที่ทิ้งได้ และชุด workflow เต็มผ่านโดยไม่ข้าม แต่ผลนี้ไม่ได้หมายความว่าพร้อม production หรือรับรองความถูกต้อง/ความปลอดภัยของ AI, payment จริง, อีเมล/SMS หรือข้อกำหนด security ทั้งหมด ดู [สถานะการตรวจรับ](docs/validation.md)
 
 ## ข้อมูลเดิม
 

@@ -42,7 +42,7 @@
 
 ผู้ใช้ที่ไม่ใช่เจ้าของงาน/ช่างที่ได้รับมอบหมาย/Admin ต้องเปิดดูรายละเอียดหรือเปลี่ยนงานนั้นไม่ได้. เมื่อไม่อนุญาตให้คืน `404 NOT_FOUND` สำหรับ Job เพื่อไม่เปิดเผยว่ามีงานของบัญชีอื่นอยู่หรือไม่. Role มาจาก session ฝั่ง server เท่านั้น ห้ามรับ role หรือ `customer_id` จาก request body.
 
-## 3. Use Cases
+## 3. กรณีใช้งาน (Use Cases)
 
 ### UC-01 เข้าระบบด้วยบัญชี seed
 
@@ -254,7 +254,7 @@ erDiagram
 - สำเร็จคืน `{ "data": ..., "meta": ... }`; ผิดพลาดคืน `{ "error": { "code": "...", "message": "...", "fields": {} }, "requestId": "..." }`.
 - HTTP ที่ใช้: `200` อ่าน/แก้/เปลี่ยนสถานะ, `201` สร้าง, `400` validation, `401` ไม่ได้ login, `403` role ไม่มีสิทธิ์, `404` ไม่พบ/ไม่มีสิทธิ์ดู, `409` state/selection conflict, `500` ข้อผิดพลาดที่ไม่คาดหมาย.
 
-### 7.2 Endpoint
+### 7.2 จุดเชื่อมต่อ API (Endpoint)
 
 | Method / Path | Role | Request หลัก | ผลสำเร็จ / เงื่อนไข |
 |---|---|---|---|
@@ -340,7 +340,7 @@ erDiagram
 
 รับ input เป็นข้อความ plain text; จำกัดความยาว `symptomText` 1–1,000 ตัวอักษร, `aiSummary` ไม่เกิน 1,000, `manufacturer`/`model` ไม่เกิน 100, `preferredTimeNote` ไม่เกิน 200, `completionNote` ไม่เกิน 500 และ `reason` ยกเลิกไม่เกิน 500. Trim ช่องว่าง, reject ค่าว่าง, ใช้ parameterized queries, และไม่แสดง HTML ที่ผู้ใช้กรอกเป็น markup.
 
-## 8. Traceability: Must → Use Case / Data / API / Test
+## 8. การติดตามความเชื่อมโยง: Must → กรณีใช้งาน / ข้อมูล / API / การทดสอบ
 
 | SRS v1.7 Must | Use Case | Data/API หลัก | Acceptance/Test |
 |---|---|---|---|
@@ -361,7 +361,7 @@ erDiagram
 4. เริ่มทำ vertical slice UC-01 → UC-02 ให้ครบก่อน; จากนั้น UC-03 → UC-04; ปิดท้ายสิทธิ์/ยกเลิก/Admin/tests.
 5. Baseline v1.7 ใช้เป็นประวัติ; สำหรับ scope ปัจจุบันให้ใช้ SRS v1.8 §13 และเอกสารนี้ §10 ซึ่งแทนข้อจำกัดเดิมที่ขัดกัน. ลำดับ vertical slice ในรายการเดิมเป็นแนวทาง v1.7; สำหรับ v1.8 ให้เริ่ม adapter interfaces/test doubles ควบคู่กับ schema และ core workflow แล้วทำ integration spike ก่อนเปิดเรียก AI/market API จริง. ห้ามหยิบ feature อื่นนอก scope v1.8 เข้ามาโดยไม่ได้ตกลง change.
 
-## 10. Expanded Demo v1.8 — Use Case/API Addendum
+## 10. ส่วนขยายกรณีใช้งานและ API สำหรับ Demo v1.8
 
 ข้อกำหนดในหัวข้อนี้เป็น revision หลัง v1.7 และใช้แทนรายละเอียดที่ขัดกันใน §§1–9. แกนเดิมยังคงอยู่: บัญชี seed, สอง workflow, provider seed, B2C matching, B2B เลือก offer. Demo ปัจจุบันใช้ Ollama/Gemma 3 4B local หลัง consent และ curated public price references แบบ non-live; automated tests ใช้ test adapters. รายละเอียดคอลัมน์ครบอยู่ใน [ขั้น 4 Expanded Data Model](mvp-data-model-v1.md); route และพฤติกรรมล่าสุดให้ยึด [ขั้น 5](api-and-job-state-v1.md).
 
@@ -392,7 +392,7 @@ erDiagram
 
 ลูกค้าให้ rating 1–5 และข้อความ optional ได้หนึ่งครั้งต่อ Job ที่ COMPLETED. ลูกค้าหรือ provider เปิด dispute ด้วยประเภท (`SERVICE_QUALITY`, `PRICE_OR_SCOPE`, `PAYMENT`, `WARRANTY`, `CANCELLATION`, `OTHER`)/เหตุผลและแนบ attachment ของ Job ได้; คู่กรณี/Admin เห็นเท่านั้น. Admin บันทึก resolution/เหตุผลและปิด dispute. AI ไม่ตัดสินข้อพิพาท.
 
-### 10.2 API addendum
+### 10.2 ส่วนขยาย API
 
 ทุก endpoint ใช้ auth/ownership policy เดิมและตรวจความสัมพันธ์ Job-actor; internal provider API key ห้ามส่งเข้า client. ตารางนี้เป็น API addendum ระดับ workflow; inventory path/field ที่ตรงกับ implementation ล่าสุดอยู่ใน [ขั้น 5 §3–6](api-and-job-state-v1.md). ไฟล์ภาพใช้ raw request body พร้อม `Content-Type` และ `X-File-Name` (ไม่ใช่ multipart); API แชตคืนสูงสุด 100 รายการโดยไม่มี cursor pagination ใน Demo.
 
@@ -460,7 +460,7 @@ payment_simulations.amount ต้องคัดลอกจาก jobs.agreed_a
 
 การเปลี่ยน Job, appointment, payment simulation, dispute และ notification row ใช้ DB transaction เดียวกันตาม schema 26 ตาราง; ถ้าการบันทึก notification ใน DB ล้มเหลว domain transaction จะ rollback ด้วย (ไม่ใช่ post-commit/outbox). ตรวจ concurrency ของ appointment overlap และการ confirm payment/dispute ซ้ำ. External AI/market API ทำงานนอก DB transaction; บันทึกผล/ความล้มเหลวกลับด้วย version/correlation ID และไม่ทิ้งสถานะกึ่งสำเร็จ.
 
-### 10.4 Data/API traceability supplement
+### 10.4 ส่วนเสริมการติดตามความเชื่อมโยงระหว่างข้อมูลกับ API
 
 | Added capability | Entity family (full definition in Step 4) | Main operation / test |
 |---|---|---|
@@ -471,8 +471,8 @@ payment_simulations.amount ต้องคัดลอกจาก jobs.agreed_a
 | Simulated payment | `payment_simulations` | B2B platform-only, B2C platform/direct, no gateway, idempotency |
 | Aftercare and trust | `warranties`, `warranty_claims`, `reviews`, `disputes`, `admin_audit_logs` | warranty timing/terms, review unique job, dispute ACL/resolution/audit |
 
-Step 2 v1.7 ERD remains the core model reference only; the complete expanded relationships and column definitions are in [Step 4](mvp-data-model-v1.md). Admin remains read-only for ordinary jobs and gains only the scoped warranty/dispute actions above; no provider approval or editable price catalog is added in this revision.
+ERD ขั้น 2 v1.7 ใช้เป็นแบบจำลองแกนกลางเท่านั้น ความสัมพันธ์และนิยามคอลัมน์ฉบับขยายที่ครบถ้วนอยู่ใน [ขั้น 4](mvp-data-model-v1.md) Admin ยังอ่านงานทั่วไปได้อย่างเดียว และทำได้เพิ่มเฉพาะงานรับประกัน/ข้อพิพาทตามขอบเขตด้านบน revision นี้ยังไม่เพิ่มการอนุมัติ provider หรือ catalog ราคาที่แก้ไขผ่านหน้าเว็บได้
 
-### 10.5 Integration boundary and Step 7 implementation
+### 10.5 ขอบเขต integration และการพัฒนาขั้น 7
 
 Demo v1.8.4 ใช้ Ollama/Gemma 3 4B แบบ local และ curated reference catalog ที่ดูแลใน source; ไม่ใช่ cloud AI/live-market integration. ขั้น 7 implementation, PostgreSQL workflow, stale guards และ browser price/stale checks ผ่านตาม [เอกสารขั้น 7](step-7-pricing-matching-decisions.md) และ [validation report](validation.md). ห้ามสมมติ rating, experience, distance, workload หรือ actual provider quotes ที่ Demo ยังไม่มี. การเพิ่มปัจจัยที่ต้องการข้อมูลใหม่ให้แยกเป็น future scope/change request พร้อม SRS/API/schema/tests update.

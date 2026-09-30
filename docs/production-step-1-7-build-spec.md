@@ -2,7 +2,7 @@
 
 **สถานะ 2026-09-26:** ข้อกำหนดสำหรับการพัฒนาต่อ; ไม่ใช่ผลตรวจรับ Production. Demo v1.8 ยังคงแยกจากรุ่นนี้. [สถานะจริง](production-readiness-review.md) และ [migration 0001](../release/migrations/0001_production_foundations.sql).
 
-## 1. Software Requirements
+## 1. ข้อกำหนดซอฟต์แวร์
 
 - **P-PAY-01** ลูกค้าบริษัทชำระผ่าน gateway ของแพลตฟอร์มเท่านั้น; ลูกค้าทั่วไปเลือก gateway หรือชำระกับช่างโดยตรง. วิธีตรงเป็นเพียงคำยืนยันของช่าง ไม่แสดงว่า gateway ตรวจเงินจริง.
 - **P-PAY-02** ยอดชำระมาจาก `jobs.agreed_amount` ฝั่ง server เท่านั้น, บันทึกเป็นสตางค์, หนึ่งคำขอสร้าง intent ต้องมี idempotency key และไม่สร้าง charge ซ้ำเมื่อ retry.

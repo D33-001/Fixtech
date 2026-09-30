@@ -1,4 +1,4 @@
-# Fixtech Software Requirements Specification (SRS) v1.8 — Expanded Demo
+# ข้อกำหนดความต้องการซอฟต์แวร์ Fixtech (SRS) v1.8 — Demo ฉบับขยาย
 
 > **เอกสารฉบับใช้งาน:** ใช้ขอบเขต Demo v1.8 ใน §§1.4 และ 13 เป็นเกณฑ์ปัจจุบัน. ข้อความที่ระบุ `baseline v1.7` ใน §§2–12 เป็นประวัติหรือข้อกำหนดผลิตภัณฑ์เป้าหมาย ไม่ใช่ acceptance ของ Demo. Decision record §13.7 (v1.8.4) เป็นคำตัดสินล่าสุดและแทนข้อกำหนด external AI/live-market API ที่ขัดกันใน §13.1–13.6. Demo ใช้ผู้ให้บริการ seed และข้อมูลสังเคราะห์ ไม่ใช่ตลาดซ่อมจริง.
 
@@ -114,7 +114,7 @@ Fixtech เป็นเว็บแพลตฟอร์มสำหรับแ
 - การจัดการองค์กรหลายระดับและการอนุมัติงานหลายชั้น
 - การวิเคราะห์ภาพด้วย AI, การแนบภาพ/วิดีโอ, แชต, warranty, รีวิว และ dispute เป็น backlog ของผลิตภัณฑ์เต็ม; ไม่รวมใน MVP v1.7 และไม่ใช้เป็นเกณฑ์ผ่าน
 
-## 4. Functional Requirements
+## 4. ความต้องการด้านการทำงาน (Functional Requirements)
 
 รายการ requirement ทุกตารางด้านล่างระบุ ID และ priority; ค่าเริ่มต้นตัวเลขในเอกสารเป็น fixture สำหรับ demo ไม่ใช่ราคา/คำมั่นเชิงพาณิชย์; พฤติกรรมที่ไม่ได้ระบุให้ถือว่าไม่อยู่ใน MVP และห้ามสร้างผลกระทบทางการเงิน/สิทธิ์โดยอนุมาน
 
@@ -337,7 +337,7 @@ fixture สำหรับผลิตภัณฑ์เต็มด้านล
 | FR-095 | M | ระบบบันทึก audit log สำหรับอนุมัติบัญชี เปลี่ยนราคา เปลี่ยนสถานะ ปรับข้อพิพาท และการกระทำ Admin; ผู้ใช้ทั่วไปแก้/ลบ audit ไม่ได้ และ audit ไม่บันทึก secret หรือเนื้อหาไฟล์ |
 | FR-096 | M | ผู้ใช้ดูประวัติงานของตนได้ แต่แก้ไข audit log หรือประวัติการเงินไม่ได้ |
 
-## 5. Business Rules
+## 5. กฎธุรกิจ (Business Rules)
 
 | ID | กฎ |
 |---|---|
@@ -359,7 +359,7 @@ fixture สำหรับผลิตภัณฑ์เต็มด้านล
 | BR-016 | เผยแพร่ Job ได้เมื่อมี price mapping ที่เปิดใช้งานและลูกค้ายอมรับราคาหรือช่วงราคา; การขาด mapping ไม่อนุญาตให้ใช้ราคาทดแทน |
 | BR-017 | การเข้าถึง Draft/ไฟล์/ที่อยู่/ข้อเสนอจำกัดตามเจ้าของและความเกี่ยวข้องปัจจุบัน; เมื่อไม่มีความเกี่ยวข้องแล้วให้ถอนสิทธิ์ทันที |
 
-## 6. Non-functional Requirements
+## 6. ความต้องการที่ไม่ใช่ฟังก์ชัน (Non-functional Requirements)
 
 สำหรับ MVP v1.7 ข้อกำหนดคุณภาพที่บังคับมีเพียง: Modular Monolith แบบง่ายบน Node.js/Express และ PostgreSQL; แยก route/controller/service เฉพาะที่จำเป็น; role/ownership ตรวจฝั่ง server; hash รหัสผ่าน seed; validate input และใช้ parameterized query/ORM; PK/FK/UNIQUE สำหรับข้อมูลหลัก; ใช้ transaction ป้องกันการเลือกข้อเสนอซ้ำ; ภาษาไทยและ responsive พื้นฐาน; และ automated tests ตามหัวข้อ 1.4. NFR รายข้อด้านล่างเป็นมาตรฐาน/แนวทางผลิตภัณฑ์เต็ม ไม่ใช่ข้อบังคับเพิ่มนอกบัญชี MVP นี้.
 
@@ -518,9 +518,9 @@ MVP demo ผ่านเมื่อทำสถานการณ์ต่อ�
 | 1.8.5 Step 5 acceptance and production boundary | 2026-09-25 | ยืนยัน PostgreSQL/API workflow บนฐานทดสอบชั่วคราว; เพิ่ม opt-in guards ให้ seed/integration test และปิด Ollama provider เมื่อ NODE_ENV=production; บันทึกข้อจำกัด AI/price ชัดเจน |
 | 1.9 Production expansion plan | 2026-09-25 | ผู้ใช้ขอเพิ่มแผนสำหรับเงินจริง ราคาอ้างอิงที่ทันสมัย ตรวจตัวตนจริง security audit และ WCAG แบบครบ; บันทึกเป็นข้อกำหนดรุ่นถัดไปใน §14 โดยไม่เปลี่ยนผลตรวจรับ Demo v1.8 |
 
-## 13. Expanded Demo Scope — Revision 1.8
+## 13. ขอบเขต Demo ฉบับขยาย — Revision 1.8
 
-### 13.1 Authority and baseline
+### 13.1 เอกสารที่มีอำนาจและ baseline
 
 ผู้ใช้ขยายขอบเขต Demo หลังอนุมัติ baseline v1.7. ข้อกำหนดในหัวข้อนี้จึงแทนรายการ Must เดิมและข้อความ “ไม่รวม/backlog” ที่ขัดกันสำหรับฟีเจอร์ที่เลือกเท่านั้น. สิ่งอื่นคงเดิม: เว็บไซต์ภาษาไทย, บัญชี seed 4 role, สอง workflow ตัวอย่าง (Software/ONLINE และ Hardware/ONSITE), พื้นที่ seed 3 เขต, ผู้ให้บริการ seed, B2C จับคู่อัตโนมัติ, B2B เลือกข้อเสนอ, Node.js/Express และ PostgreSQL.
 
@@ -542,7 +542,7 @@ Demo เป็นระบบทดลอง end-to-end ไม่ใช่บร
 
 B2B offer สองรายการยังเป็น provider seed/simulation ไม่ใช่ราคา market API หรือ quote จากช่างจริง; จำนวน 350/450 และ 550/700 บาทจาก baseline เดิมเป็น test fixtures เท่านั้น. หากแสดงเป็น offer ใน flow ที่ใช้ live estimate แล้วราคาอยู่นอกช่วงหรือ scope ต่างจาก estimate ต้องแสดงความต่างและให้ลูกค้ายืนยันยอด/ขอบเขตใหม่ก่อนนัดหรือเริ่มงาน ห้ามแสดง offer fixture ว่าเป็นราคาตลาดจริง.
 
-### 13.3 Integration contracts and safe fallback
+### 13.3 ข้อตกลง integration และ fallback ที่ปลอดภัย
 
 1. **Local AI:** เรียก Ollama เฉพาะ loopback ผ่าน server-side adapter; ตั้ง provider/model/timeout ใน environment. ก่อนส่งข้อมูลต้องมี consent; ส่งเฉพาะข้อความอาการและภาพที่เลือก ไม่ส่งชื่อ อีเมล เบอร์โทร หรือที่อยู่เต็ม. ตรวจ structured output; เก็บ provider/model/version/status ที่จำเป็น. timeout/invalid response/model missing ให้เก็บ Draft และตอบ recoverable error. ใช้ข้อมูลสังเคราะห์เท่านั้น.
 2. **Curated price references:** เก็บ public source URLs, matched service example, numeric range, currency, review date and reviewer note in the catalog. Do not scrape at runtime or claim source API/live freshness. Display source and review date; source changes require updating the catalog and review date. If no compatible reference exists, return `ESTIMATE_UNAVAILABLE`; no AI-generated prices.
@@ -551,7 +551,7 @@ B2B offer สองรายการยังเป็น provider seed/simulat
 5. **In-app notification (Demo v1.8, 26-table schema):** บันทึก notification row ใน transaction เดียวกับ domain event เพื่อให้ข้อมูลหลักและ notification อยู่ครบคู่กัน; DB failure ทำให้ทั้ง transaction rollback. นี่เป็นข้อยกเว้นจากแนวทาง post-commit ใน baseline ก่อนหน้า. ไม่รวม email/SMS หรือ notification provider ภายนอก; หากต้องการให้ core commit แม้ notification insert ล้มเหลว ต้องเพิ่ม durable outbox และทบทวน schema/Step 4 ผ่าน change request. ต้องทดสอบสิทธิ์ recipient และ retry แบบไม่สร้างซ้ำ.
 6. **Payment simulation:** ทุกหน้าจอและ API ติดป้าย “จำลอง — ไม่มีการโอนเงินจริง”; ไม่รับ/เก็บ credential การเงิน. `PLATFORM_SIMULATED` บันทึกเหตุการณ์จำลองเท่านั้น; `DIRECT` บันทึกคำยืนยันจากช่างเท่านั้น ไม่ใช่หลักฐานรับเงินจริง.
 
-### 13.4 Revised end-to-end acceptance
+### 13.4 เกณฑ์ตรวจรับตั้งแต่ต้นจนจบฉบับปรับปรุง
 
 รายการต่อไปนี้เป็น **เกณฑ์ตรวจรับที่ต้องพิสูจน์** ไม่ใช่คำยืนยันว่า implementation ผ่านแล้ว. ผลผ่าน/ค้างของแต่ละ gate ให้ยึดวันที่และหลักฐานใน [validation report](validation.md) และ [ทบทวนความพร้อมขั้น 1–7](step-1-7-readiness-review.md). Demo v1.8 ผ่านเมื่อทุกข้อด้านล่างทำได้ในเว็บไซต์และมี automated tests ที่ทำซ้ำได้:
 

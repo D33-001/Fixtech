@@ -1,22 +1,63 @@
-# Integration contracts — Fixtech Demo v1.8
+# ข้อตกลงการเชื่อมต่อระบบภายนอก — Fixtech Demo v1.8
 
-## Local AI provider (Demo v1.8.4)
+เอกสารนี้อธิบายว่า Demo เชื่อมต่อ AI และข้อมูลราคาอย่างไร รวมถึงข้อจำกัดที่ต้องรู้ก่อนนำไปสาธิตหรือพัฒนาต่อ คำอย่าง `AI_PROVIDER`, `ESTIMATE_UNAVAILABLE` และชื่อ API คงเป็นภาษาอังกฤษ เพราะเป็นชื่อที่ใช้จริงในโค้ด
 
-The supported Demo adapter is Ollama on loopback, default model `gemma3:4b`; configure `AI_PROVIDER=ollama`, `OLLAMA_BASE_URL=http://127.0.0.1:11434`, and `OLLAMA_MODEL=gemma3:4b`. Install/pull the model separately. The app rejects non-loopback hosts and the provider factory refuses `AI_PROVIDER=ollama` when `NODE_ENV=production`. Send only user-consented symptom text and selected images; best-effort redact email/phone/common address labels, but this is not guaranteed PII removal. Validate structured JSON. A deterministic post-check replaces recommendations matching known risky hardware-opening/cleaning or destructive-software patterns with a safe fallback; this narrow pattern check is not comprehensive safety moderation. Timeout, unavailable model, invalid response or revoked consent leaves the Job as Draft and returns a recoverable error. Unit tests use deterministic doubles. Local text and image transport/schema smoke tests with synthetic/local project data passed on 2026-09-25; the image case had a factual error, so those tests do not certify model quality. Use synthetic data only and do not include personal data in images. This local model, redaction and pattern guard are explicitly not production security/privacy controls; production requires a separately reviewed provider, privacy/DPA assessment, threat model, safety evaluation and human escalation policy.
+## 1. AI ในเครื่องด้วย Ollama
 
-## Curated price references (Demo v1.8.4)
+- Demo ใช้ Ollama ที่ `127.0.0.1:11434` และโมเดลเริ่มต้น `gemma3:4b` จึงไม่ต้องส่งข้อความหรือรูปภาพไปยังบริการ AI ภายนอก
+- ผู้ใช้ต้องให้ความยินยอมก่อนส่งข้อมูลเข้า AI ระบบพยายามปกปิดข้อมูลส่วนบุคคลเบื้องต้นก่อนสร้าง prompt แต่ยังไม่ควรใช้ข้อมูลลูกค้าจริงหรือข้อมูลลับใน Demo
+- ผลลัพธ์จากโมเดลต้องผ่านการตรวจรูปแบบ JSON และกฎความปลอดภัยของระบบ ห้ามนำข้อความจากโมเดลไปเปลี่ยนสถานะงานหรือบันทึกข้อมูลสำคัญโดยไม่ตรวจสอบ
+- ถ้าโมเดลตอบผิดรูปแบบ หมดเวลา หรือ Ollama ติดต่อไม่ได้ ระบบต้องหยุดอย่างปลอดภัย แสดงสาเหตุที่เข้าใจได้ และคงงานไว้ที่ `Draft` ผู้ใช้จึงแก้ข้อมูลหรือลองใหม่ได้
+- คำแนะนำเบื้องต้นต้องจำกัดเฉพาะสิ่งที่ผู้ใช้ทั่วไปทำได้อย่างปลอดภัย ห้ามสั่งเปิดอุปกรณ์ สัมผัสไฟฟ้า ปิดระบบสำคัญ หรือทำสิ่งที่เสี่ยงต่อข้อมูลและการรับประกัน
+- เมื่อ `NODE_ENV=production` แอปจะปฏิเสธ `AI_PROVIDER=ollama` โดยตั้งใจ เพราะตัวเชื่อมต่อนี้ออกแบบสำหรับ Demo ในเครื่อง ไม่ใช่สถาปัตยกรรม AI production
 
-The Demo does not claim real-time market access. `MARKET_PRICE_PROVIDER=curated_demo` uses manually reviewed public example service fees with source URLs and review date in `src/integrations/demo-price-reference.js`. The current indicative references are 300–2,500 THB for remote software support and 500–800 THB for hardware service examples; these ranges span different service tiers/providers and are not like-for-like quotes. Return `CURATED_PUBLIC_EXAMPLES`; display that it is indicative and not live. Do not call these Fixtech quotes or assert statistical representativeness. Missing mapping returns `ESTIMATE_UNAVAILABLE`. Pricing formula remains separate, deterministic, server-side and versioned in PostgreSQL. A future real service must pass permitted-source, freshness and data-quality gates.
+### การตรวจรับ AI
 
-## Safe implementation order
+1. สั่ง `ollama pull gemma3:4b` หนึ่งครั้ง และใช้ `ollama run gemma3:4b` ตรวจว่าโมเดลเปิดได้
+2. ตั้งค่าตาม `.env.example` โดยเก็บค่าจริงใน `.env` ซึ่ง Git ไม่ติดตาม
+3. เปิด `/api/demo/status` และตรวจว่า provider กับ model ตรงกับที่ตั้งไว้
+4. ทดลองวิเคราะห์อาการจากข้อความสังเคราะห์อย่างน้อยหนึ่งกรณี และกรณีที่มีภาพสังเคราะห์หนึ่งกรณี
+5. ทดลองถาม AI ต่อหลังวิเคราะห์ และตรวจว่าเนื้อหาไม่หลุดไปจากงานซ่อม
+6. ปิด Ollama ชั่วคราวเพื่อตรวจว่าแอปแจ้งข้อผิดพลาดและยังไม่สร้างโพสต์งาน
+7. บันทึกวันที่ เครื่อง โมเดล และผลทดสอบใน `docs/validation.md`
 
-Keep Ollama and curated reference providers behind server-side interfaces, with deterministic test doubles, timeout/error normalization and contract tests. Persist provider/model and reference provenance. AI calls run outside DB transactions; persist results with version data and prevent stale responses from overwriting a newer analysis.
+เมื่อวันที่ 25 กันยายน 2026 เคยทดสอบ smoke test กับ `gemma3:4b` จริงแล้ว ระบบเชื่อมต่อและตรวจโครงสร้างคำตอบได้ แต่โมเดลเคยตีความรายละเอียดจากภาพไม่ถูกต้อง จึงต้องแสดงผลเป็น “การวิเคราะห์เบื้องต้น” ให้ผู้ใช้ยืนยัน และห้ามถือว่าเป็นผลวินิจฉัยที่รับประกันความถูกต้อง
 
-## Other boundaries
+## 2. ข้อมูลราคาอ้างอิงสำหรับ Demo
 
-- File storage is private and access-controlled; do not expose storage keys as public URLs.
-- Chat and notifications are in-app only; no SMS/email or realtime socket.
-- Payment flow is simulation-only; do not collect card/bank credentials or call a payment gateway.
-- Dispute resolution is performed by Admin; AI cannot decide outcomes.
+- ปัจจุบันใช้ `MARKET_PRICE_PROVIDER=curated_demo` ซึ่งเป็นรายการตัวอย่างสาธารณะที่ทีมตรวจและบันทึกไว้ ไม่ใช่ราคาตลาดแบบ real-time
+- แต่ละรายการต้องมี URL แหล่งที่มา วันที่ `reviewedAt` ประเภทบริการ ช่วงราคา และหมายเหตุว่าราคาใดรวม/ไม่รวมอะไหล่
+- ข้อมูล curated ใช้ได้ไม่เกิน 30 วันหลัง `reviewedAt` หากเกินกำหนดต้องคืน `ESTIMATE_UNAVAILABLE` จนกว่านักพัฒนาจะเปิดแหล่งจริงและทบทวนใหม่ การอ่านข้อมูลห้ามอัปเดตวันที่ให้อัตโนมัติ
+- `MARKET_PRICE_MAX_AGE_HOURS` ซึ่งเริ่มต้นที่ 24 ชั่วโมงสงวนไว้สำหรับแหล่งข้อมูลสดในอนาคต และไม่สามารถใช้ยืดอายุข้อมูล curated ได้
+- ช่วงราคาโปรแกรมระยะไกล 300–2,500 บาท และตัวอย่างงานฮาร์ดแวร์ 500–800 บาทเป็นเพียงข้อมูลประกอบจากบริการที่อาจมีขอบเขตไม่เท่ากัน จึงต้องติดป้าย `CURATED_PUBLIC_EXAMPLES` และแสดงแหล่งที่มากับวันที่ทบทวน
+- หากประเภทงานจับคู่กับแหล่งอ้างอิงไม่ได้ ห้ามเดาราคา ให้คืน `ESTIMATE_UNAVAILABLE` และระบุว่าต้องให้ช่างหรือ Admin ตรวจด้วยตนเอง
+- สูตรคำนวณของ Demo ต้องเป็นแบบกำหนดผลซ้ำได้ มีเลขเวอร์ชัน และบันทึก input, output และเหตุผลที่ใช้ เพื่อให้ตรวจสอบย้อนหลังได้
 
-See [SRS §13.3](software-requirements-v1.md), [API contracts](mvp-demo-design-v1.md), and [operations](operations.md) for the normative requirements.
+### เงื่อนไขก่อนใช้ราคาแบบ real-time ใน production
+
+1. ต้องเลือกผู้ให้ข้อมูลที่อนุญาตให้นำข้อมูลมาใช้ แคช และแสดงต่อผู้ใช้ได้อย่างชัดเจน
+2. ทำ adapter แยกจากสูตรกลาง เพื่อเปลี่ยนผู้ให้บริการได้โดยไม่กระทบ workflow งาน
+3. ตรวจความใหม่ แหล่งที่มา หน่วยเงิน ภาษี ค่าเดินทาง ค่าอะไหล่ และความเทียบเคียงกันของบริการ
+4. มี cache, timeout, retry แบบจำกัด, circuit breaker และ fallback เป็น “ประเมินราคาไม่ได้” แทนการเดา
+5. บันทึก `sourceId`, เวลาที่ดึงข้อมูล, เวลาหมดอายุ และสูตรเวอร์ชันในทุกผลประเมิน
+6. ให้ผู้ใช้เห็นว่าเป็นราคาประเมิน ไม่ใช่ราคาสุดท้าย และต้องยืนยันใหม่เมื่อข้อมูลหมดอายุหรือขอบเขตงานเปลี่ยน
+
+## 3. ลำดับพัฒนาระบบภายนอกอย่างปลอดภัย
+
+1. ทำ interface ของ provider และ mock ให้ทดสอบได้ก่อน
+2. เพิ่ม adapter จริงโดยไม่ผูก business logic ไว้กับผู้ให้บริการรายเดียว
+3. เก็บ secret ใน environment หรือ secret manager เท่านั้น ห้ามเขียนลงโค้ดหรือเอกสาร
+4. ตรวจ schema ของ response ทุกครั้ง และแปลงข้อผิดพลาดภายนอกเป็นรหัสภายในที่สม่ำเสมอ
+5. เพิ่ม idempotency, audit log, timeout และการจำกัดจำนวนคำขอ ก่อนเปิดใช้กับข้อมูลหรือเงินจริง
+6. ทดสอบทั้งกรณีสำเร็จ ล้มเหลว ช้า ตอบซ้ำ และข้อมูลไม่ครบในฐานทดสอบที่ทิ้งได้
+7. เปิดใช้ทีละสภาพแวดล้อมและมีวิธีปิด feature ได้ทันทีเมื่อพบปัญหา
+
+## 4. ขอบเขตข้อมูลและบริการของ Demo
+
+- ไฟล์อัปโหลดเก็บในพื้นที่ private ของเครื่องและเข้าผ่านการตรวจสิทธิ์เท่านั้น ไม่เสิร์ฟจาก public path
+- การแจ้งเตือนของ Demo อยู่ภายในเว็บ อีเมลและ SMS จริงเป็นแผนขยาย
+- การชำระเงินเป็น simulation ไม่มีการหักเงินจริงหรือรับ webhook จากธนาคาร
+- การยืนยันตัวตนช่างใช้เอกสารสังเคราะห์และการอนุมัติโดย Admin ไม่มีการตรวจฐานข้อมูลภาครัฐหรือผู้ให้บริการ KYC จริง
+- ข้อพิพาทดำเนินผ่านสถานะและบันทึกของ Admin ในระบบ Demo ไม่มีการคืนเงินจริง
+
+ขอบเขตเหล่านี้ต้องแสดงในหน้า Demo และเอกสารนำเสนอเสมอ เพื่อไม่ให้ผู้ชมเข้าใจว่าระบบผ่านการรับรองสำหรับ production แล้ว

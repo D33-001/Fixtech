@@ -224,7 +224,7 @@ stateDiagram-v2
 5. Appointment, payment, Job transition, status event และ notification row ใช้ transaction เดียวกัน; หาก DB เขียน notification ไม่ได้ transaction หลัก rollback ด้วย. ไม่มี external notification provider ใน Demo.
 6. Warranty snapshot, review unique-per-job และ dispute/Admin resolution เป็น domain แยก; simulated payment ไม่เคลื่อนเงินจริง.
 
-## 7. Expanded Demo v1.8 — Activity Addendum
+## 7. ส่วนขยาย Activity Diagram สำหรับ Demo v1.8
 
 ผังนี้เพิ่ม subprocess ตาม Demo v1.8.4: Ollama/Gemma 3 4B ทำงานแบบ local หลัง consent และราคาอ่านจาก curated public reference catalog ที่ไม่ใช่ live market. Automated tests ใช้ test adapters; ห้ามแสดงผล test adapter ว่าเป็นผล runtime จริง.
 
