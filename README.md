@@ -52,6 +52,50 @@
 - [การติดตั้ง/การทำงาน](docs/operations.md)
 - [แผนตรวจสอบ](docs/validation.md)
 
+## โปรแกรมที่ควรติดตั้งและใช้ทำอะไร
+
+สมาชิกทั้งสามควรติดตั้งโปรแกรมจำเป็นให้เหมือนกัน เพื่อให้ทุกคนเปิด แก้ ทดสอบ และอธิบายระบบได้ ไม่ควรมีเพียงคนเดียวที่เปิดฐานข้อมูลหรือรัน Backend เป็น
+
+### โปรแกรมจำเป็น
+
+| โปรแกรม | ใช้ทำอะไรใน Fixtech | ใครควรใช้ |
+|---|---|---|
+| **Visual Studio Code** | เปิดและแก้ไฟล์ Frontend ใน `public/`, Backend ใน `src/`, test, SQL และ Markdown แนะนำส่วนเสริม ESLint, Prettier และ Markdown Preview แต่ไม่บังคับ | ทั้ง 3 คน |
+| **Git** | ดึงโค้ดจาก repository, สร้าง branch งานย่อย, ตรวจไฟล์ที่เปลี่ยน, commit และรวมงานเข้า `Develop` | ทั้ง 3 คน |
+| **Node.js 22.9 ขึ้นไป** | รัน Express server, ติดตั้ง package ด้วย npm, seed ข้อมูล และรัน JavaScript test | ทั้ง 3 คน |
+| **PostgreSQL** | เป็นฐานข้อมูลหลักของระบบ เก็บผู้ใช้ งาน ข้อเสนอ นัดหมาย แชต ราคา การชำระเงินจำลอง รีวิวและข้อพิพาท | ทั้ง 3 คนควรเปิดและตรวจได้ |
+| **pgAdmin 4** | จัดการ PostgreSQL แบบหน้าจอ ใช้สร้างฐานว่าง เปิด Query Tool รัน DDL ดูตาราง และตรวจข้อมูล Demo | ทั้ง 3 คน โดยเฉพาะเวลาทำขั้น 4 และตรวจ workflow |
+| **PowerShell หรือ Terminal ใน VS Code** | รันคำสั่ง `npm install`, `npm start`, seed, test และคำสั่ง Git ต้องตรวจโฟลเดอร์ปัจจุบันก่อนสั่งทุกครั้ง | ทั้ง 3 คน |
+| **เว็บเบราว์เซอร์** เช่น Chrome, Edge หรือ Brave | เปิด `http://localhost:3000`, ทดลองหน้าจอทั้ง 4 บทบาท ดู responsive และใช้ Developer Tools ตรวจ Network, Console และขนาดหน้าจอ | ทั้ง 3 คน |
+| **Ollama** | รันโมเดล `gemma3:4b` ในเครื่องสำหรับวิเคราะห์อาการและตอบคำถามต่อ ใช้เฉพาะ Demo และเปิดรับการเชื่อมต่อที่ loopback | อย่างน้อยเครื่อง Demo ต้องมี และทุกคนควรรู้วิธีเปิด/ปิด |
+| **Python 3** | รัน `tests/check_demo_v18_schema.py` เพื่อตรวจว่า DDL, SQL สำหรับ drawDB และ ERD สอดคล้องกัน | ทั้ง 3 คน |
+
+### โปรแกรมหรือเว็บไซต์เสริม
+
+| โปรแกรม/เว็บไซต์ | ใช้เมื่อใด | หมายเหตุ |
+|---|---|---|
+| **drawDB** | นำเข้า `docs/fixtech-demo-v1.8-drawdb.sql` เพื่อดูและจัดวาง ER Diagram 26 ตาราง | ใช้ทำความเข้าใจและนำเสนอ ห้ามแก้เฉพาะใน drawDB แล้วลืมแก้ DDL/เอกสาร |
+| **Postman, Bruno หรือ Insomnia** | ทดลอง API แยกจากหน้าเว็บ เช่น ตรวจ status code, request body และ error response | เป็นเครื่องมือเสริม เพราะระบบมี automated test อยู่แล้ว |
+| **DBeaver** | ใช้แทน pgAdmin หากทีมถนัด สำหรับดู schema และรัน SQL | เลือก pgAdmin หรือ DBeaver อย่างใดอย่างหนึ่งก็ได้ |
+| **GitHub บนเว็บ** | ดู branch/commit, เปิด issue, review diff และตรวจว่าไม่มี secret ถูกส่งขึ้น repository | Repository ต้องคงเป็น Private และห้ามอัปโหลด `.env` |
+| **Figma หรือ diagrams.net** | ทำภาพประกอบ UI, architecture หรือ flow สำหรับสไลด์ | Wireframe ที่กำหนดพฤติกรรมจริงยังต้องตรงกับ `docs/wireframes-v1.md` |
+
+### ลำดับเปิดโปรแกรมเมื่อเริ่มทำงาน
+
+1. เปิด PostgreSQL และตรวจว่าฐาน Demo ที่ต้องการใช้ทำงานอยู่
+2. เปิด Ollama หากรอบนั้นต้องทดลอง AI ถ้าไม่ใช้ AI ให้กำหนด `AI_PROVIDER=disabled`
+3. เปิดโฟลเดอร์ Fixtech ใน Visual Studio Code และเปิด Terminal จากโฟลเดอร์หลักของโครงการ
+4. ตรวจ branch ด้วย `git branch --show-current` ซึ่งควรเป็น branch งานที่ตกลงกัน ไม่แก้ตรง `main`
+5. รัน `npm run setup:check` ก่อนเปิดระบบ เพื่อจับปัญหา `.env`, credential และ schema
+6. รัน `npm start` แล้วเปิดเว็บเบราว์เซอร์ที่ `http://localhost:3000`
+7. หลังแก้โค้ด รัน `npm run check`, `npm test` และ schema test ก่อน commit
+
+### โปรแกรมที่ไม่ต้องใช้ใน Demo ตอนนี้
+
+- ไม่ต้องติดตั้ง Prisma เพราะโค้ดปัจจุบันใช้ `pg` และ parameterized SQL โดยตรง
+- ไม่ต้องเปิด payment gateway, SMS, email หรือ KYC จริง เพราะยังอยู่นอกขอบเขตระบบสาธิต
+- ไม่ต้องติดตั้ง Docker หากทีมใช้ PostgreSQL และ Ollama ในเครื่องได้อยู่แล้ว การเพิ่ม Docker ควรทำเมื่อทั้งทีมเข้าใจวิธีดู log, volume และ port ก่อน
+
 ## การติดตั้งและพัฒนาในเครื่อง
 
 1. ติดตั้ง dependency ด้วย `npm install` โดยใช้ Node.js 22.9 ขึ้นไป แล้วเปิด PowerShell ค้างอยู่ในโฟลเดอร์โครงการนี้
