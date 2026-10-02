@@ -188,6 +188,9 @@ main { max-width: 1240px; margin: auto; padding: 0 28px; }
 .workspace .section-heading h2 { font-size: 27px; }
 .workspace .section-heading > p:last-child { font-size: 13px; }
 .login-form { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 12px; max-width: 900px; }
+.auth-switch { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.register-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 720px; }
+.register-form > button { justify-self: start; align-self: end; }
 .workspace label { display: grid; gap: 7px; color: #40534c; font-size: 12px; font-weight: 700; }
 .workspace label small { color: var(--muted); font-size: 11px; font-weight: 400; }
 .workspace input, .workspace select, .workspace textarea, .dialog-card input, .dialog-card select, .dialog-card textarea {
@@ -265,7 +268,7 @@ footer { display: flex; justify-content: space-between; gap: 15px; min-height: 6
   .step-card h3 { margin-top: 16px; font-size: 14px; }
   .step-card p { font-size: 11px; }
   .workspace { padding: 22px 17px; }
-  .login-form, .form-grid { grid-template-columns: 1fr; }
+  .login-form, .register-form, .form-grid { grid-template-columns: 1fr; }
   .form-grid .wide { grid-column: auto; }
   .job-card { align-items: flex-start; flex-direction: column; padding: 15px; }
   .job-actions { justify-content: flex-start; }

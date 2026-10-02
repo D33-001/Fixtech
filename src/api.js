@@ -2,7 +2,7 @@ import { randomUUID, createHash } from 'node:crypto';
 import { createReadStream, promises as fs } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import express from 'express';
-import { getSessionToken, issueSession, readSession, sessionCookie, verifyPassword } from './auth.js';
+import { getSessionToken, hashPassword, issueSession, readSession, sessionCookie, verifyPassword } from './auth.js';
 import { CURATED_REFERENCE_MAX_AGE_DAYS, estimatePrice, referenceIsFresh } from './pricing.js';
 
 const CUSTOMER_ROLES = new Set(['CUSTOMER_GENERAL', 'CUSTOMER_BUSINESS']);
@@ -108,6 +108,7 @@ function expressRawImage(req,res,callback,next) {
 
 export function registerApi(app, { pool, env, aiProvider, marketPriceProvider, storageRoot }) {
   const loginAttempts = new Map();
+  const registrationAttempts = new Map();
   app.get('/api/catalog', async (_req, res) => {
     const [services, districts] = await Promise.all([
       pool.query('SELECT category,service_format,label FROM service_catalog WHERE is_active ORDER BY category'),
@@ -137,13 +138,50 @@ export function registerApi(app, { pool, env, aiProvider, marketPriceProvider, s
     res.json({ data: { user: safeUser(user) } });
   });
 
+  app.post('/api/auth/register', async (req, res) => {
+    const key = req.ip;
+    const attempts = registrationAttempts.get(key) ?? { count: 0, since: Date.now() };
+    if (Date.now() - attempts.since > 15 * 60_000) { attempts.count = 0; attempts.since = Date.now(); }
+    if (attempts.count >= 10) fail(429, 'REGISTRATION_THROTTLED', 'สมัครบัญชีหลายครั้งเกินไป กรุณาลองใหม่ภายหลัง');
+    attempts.count += 1;
+    registrationAttempts.set(key, attempts);
+
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail(400, 'VALIDATION_ERROR', 'อีเมลไม่ถูกต้อง');
+    const displayName = text(req.body?.displayName, 100, 'ชื่อที่แสดง');
+    const role = req.body?.role;
+    if (!CUSTOMER_ROLES.has(role)) fail(400, 'VALIDATION_ERROR', 'สมัครได้เฉพาะบัญชีลูกค้าทั่วไปหรือลูกค้าบริษัท');
+    const password = req.body?.password;
+    if (typeof password !== 'string' || password.length < 12 || password.length > 128) fail(400, 'VALIDATION_ERROR', 'รหัสผ่านต้องยาว 12–128 ตัวอักษร');
+    const companyName = role === 'CUSTOMER_BUSINESS' ? text(req.body?.companyName, 160, 'ชื่อบริษัท') : null;
+    const existing = await pool.query('SELECT 1 FROM users WHERE lower(email)=lower($1) LIMIT 1', [email]);
+    if (existing.rowCount) fail(409, 'EMAIL_ALREADY_REGISTERED', 'อีเมลนี้มีบัญชีแล้ว กรุณาใช้อีเมลอื่นหรือเข้าสู่ระบบ');
+
+    const id = randomUUID();
+    const passwordHash = await hashPassword(password);
+    try {
+      await tx(pool, async (client) => {
+        await client.query('INSERT INTO users(id,email,password_hash,role,display_name) VALUES($1,$2,$3,$4,$5)', [id, email, passwordHash, role, displayName]);
+        if (role === 'CUSTOMER_BUSINESS') await client.query(
+          'INSERT INTO company_profiles(user_id,company_name,contact_name) VALUES($1,$2,$3)', [id, companyName, displayName]
+        );
+      });
+    } catch (error) {
+      if (error.code === '23505') fail(409, 'EMAIL_ALREADY_REGISTERED', 'อีเมลนี้มีบัญชีแล้ว กรุณาใช้อีเมลอื่นหรือเข้าสู่ระบบ');
+      throw error;
+    }
+    const user = { id, email, role, displayName, providerId: null };
+    res.setHeader('Set-Cookie', sessionCookie(issueSession(id, env.SESSION_SECRET), cookieOptions(env)));
+    res.status(201).json({ data: { user } });
+  });
+
   app.post('/api/auth/logout', (_req, res) => {
     res.setHeader('Set-Cookie', sessionCookie('', { ...cookieOptions(env), clear: true }));
     res.status(204).end();
   });
 
   app.use('/api', async (req, _res, next) => {
-    if (req.path === '/health/live' || req.path === '/health/ready' || req.path === '/demo/status' || req.path === '/catalog' || req.path === '/auth/login' || req.path === '/auth/logout') return next();
+    if (req.path === '/health/live' || req.path === '/health/ready' || req.path === '/demo/status' || req.path === '/catalog' || req.path === '/auth/login' || req.path === '/auth/register' || req.path === '/auth/logout') return next();
     if (!/^\/(auth\/me|jobs(?:\/|$)|notifications(?:\/|$)|appointments\/|payment-simulations\/|admin\/)/.test(req.path)) return next();
     const userId = parseCookieToken(req, env);
     if (!userId) return next(new HttpError(401, 'UNAUTHENTICATED', 'กรุณาเข้าสู่ระบบ'));
