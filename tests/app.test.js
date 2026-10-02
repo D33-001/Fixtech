@@ -38,6 +38,20 @@ test('readiness returns only a generic failure when database is unavailable', as
   });
 });
 
+test('registration reports database failure safely when PostgreSQL rejects credentials', async () => {
+  const app = createApp({ pool: { query: async () => { throw Object.assign(new Error('private connection detail'), { code: '28P01' }); } } });
+  await withServer(app, async (base) => {
+    const response = await fetch(`${base}/api/auth/register`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ role: 'CUSTOMER_GENERAL', displayName: 'Test User', email: 'new@example.com', password: 'my-own-password-123' })
+    });
+    assert.equal(response.status, 503);
+    const body = await response.json();
+    assert.equal(body.error.code, 'DATABASE_UNAVAILABLE');
+    assert.doesNotMatch(JSON.stringify(body), /private connection detail|28P01/);
+  });
+});
+
 test('readiness succeeds only after database query succeeds', async () => {
   const app = createApp({ pool: { query: async () => ({ rows: [{ table_count: 26 }] }) } });
   await withServer(app, async (base) => {

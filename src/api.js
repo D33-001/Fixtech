@@ -987,11 +987,12 @@ export function registerApi(app, { pool, env, aiProvider, marketPriceProvider, s
 
   app.use((err, req, res, next) => {
     if (res.headersSent) return next(err);
+    const databaseUnavailable = ['28P01', 'ECONNREFUSED', 'ENOTFOUND', '3D000', 'ETIMEDOUT', '57P03'].includes(err.code);
     const safeIntegrationFailure = [502,503].includes(err.status) && /^(AI_|MARKET_PRICE_|ESTIMATE_)/.test(err.code ?? '');
-    const status = err instanceof HttpError ? err.status : safeIntegrationFailure ? err.status : (err.code === '23505' ? 409 : err.type === 'entity.too.large' ? 413 : 500);
-    const code = err instanceof HttpError ? err.code : safeIntegrationFailure ? err.code : (err.code === '23505' ? 'CONFLICT' : err.type === 'entity.too.large' ? 'PAYLOAD_TOO_LARGE' : 'INTERNAL_ERROR');
-    const message = err instanceof HttpError ? err.message : safeIntegrationFailure ? err.message : (err.code === '23505' ? 'รายการนี้มีอยู่แล้ว' : err.type === 'entity.too.large' ? 'ไฟล์มีขนาดเกิน 10 MiB' : 'เกิดข้อผิดพลาดภายในระบบ');
-    if (status === 500) console.error('API request failed', { method: req.method, path: req.path, code: err.code });
+    const status = err instanceof HttpError ? err.status : safeIntegrationFailure ? err.status : databaseUnavailable ? 503 : (err.code === '23505' ? 409 : err.type === 'entity.too.large' ? 413 : 500);
+    const code = err instanceof HttpError ? err.code : safeIntegrationFailure ? err.code : databaseUnavailable ? 'DATABASE_UNAVAILABLE' : (err.code === '23505' ? 'CONFLICT' : err.type === 'entity.too.large' ? 'PAYLOAD_TOO_LARGE' : 'INTERNAL_ERROR');
+    const message = err instanceof HttpError ? err.message : safeIntegrationFailure ? err.message : databaseUnavailable ? 'เชื่อมต่อฐานข้อมูลไม่ได้ กรุณาตรวจ PostgreSQL และค่า DATABASE_URL ใน .env แล้วลองใหม่' : (err.code === '23505' ? 'รายการนี้มีอยู่แล้ว' : err.type === 'entity.too.large' ? 'ไฟล์มีขนาดเกิน 10 MiB' : 'เกิดข้อผิดพลาดภายในระบบ');
+    if (status >= 500) console.error('API request failed', { method: req.method, path: req.path, code: err.code });
     res.status(status).json({ error: { code, message } });
   });
 }
