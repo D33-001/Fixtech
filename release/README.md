@@ -7,7 +7,7 @@ Schema ไม่มีการสร้าง UUID ด้วย database extens
 ตัวอย่าง PowerShell โดยแทนชื่อฐานและผู้ใช้ให้ตรงสภาพแวดล้อม:
 
 ```powershell
-psql -X -v ON_ERROR_STOP=1 -d fixtech_demo_v18 -f release/FixTech-demo-1.0.database.sql
+psql -X -v ON_ERROR_STOP=1 -d fixtech_demo_v18 -f release/FixTech-demo-v1.8.database.sql
 ```
 
 ใช้บัญชี migration ที่มีสิทธิ์ DDL. อย่าใช้บัญชีฐานข้อมูลเจ้าของ schema เป็น credential ของเว็บ. ก่อนเปิดให้ backend ต่อฐาน ต้องกำหนด role/privilege ให้ least privilege และทำ authorization ใน server ตาม SRS; การสร้างบทบาทและ RLS ของ FixTech v4 ไม่ได้ใช้กับ schema นี้.

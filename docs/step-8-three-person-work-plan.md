@@ -40,7 +40,7 @@
 
 ### ส่วน 1 — เปิดระบบบนเครื่องที่จะนำเสนอ (1–2 รอบ)
 
-ทำตาม `README.md` และ `operations.md`: Node 22.9+, PostgreSQL ฐาน Demo ว่าง, `.env` ส่วนตัว, DDL 26 ตาราง, seed หนึ่งครั้ง, Ollama ถ้าจะสาธิต AI. ลำดับตรวจคือ `npm run setup:check -- --before-seed` → seed พร้อมตัวแปรอนุญาตชั่วคราวตามคู่มือ → `npm run setup:check` → `npm start` → เปิด `http://localhost:3000` และ `/api/health/ready`. คนที่เหลือตรวจว่าอยู่ในโฟลเดอร์โครงการและชี้ฐาน Demo ที่ทิ้งได้จริง. ห้ามแชร์รหัสหรือ `.env`.
+ทำตาม `README.md` และ `operations.md`: Node 22.9+, PostgreSQL ฐาน Demo ว่าง, `.env` ส่วนตัว, DDL 26 ตาราง, seed หนึ่งครั้ง และ Ollama ถ้าจะสาธิต AI ลำดับตรวจคือ `npm run setup:check -- --before-seed` → seed พร้อมตัวแปรอนุญาตชั่วคราว → `npm run setup:check` → `npm run dev` → เปิด `http://localhost:3001` และ `/api/health/ready` ระหว่างพัฒนา nodemon และ BrowserSync จะ restart/reload ให้เอง เมื่อเตรียมนำเสนอให้หยุดด้วย `Ctrl+C` แล้วใช้ `npm start` กับ `http://localhost:3000` เพื่อทดสอบโหมดนิ่ง คนที่เหลือตรวจว่า Terminal อยู่ในโฟลเดอร์โครงการและชี้ฐาน Demo ที่ทิ้งได้จริง ห้ามแชร์รหัสหรือ `.env`
 
 **ผ่านเมื่อ:** เครื่องที่จะสาธิตเปิดเว็บและ ready; ทุกคนรู้วิธีเริ่ม/หยุด. หาก Ollama ไม่พร้อมให้จดไว้และใช้ manual fallback; ไม่อ้างว่าทดสอบ AI จริงบนเครื่องนั้น.
 
