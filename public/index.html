@@ -3,58 +3,827 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Fixtech Demo แพลตฟอร์มจับคู่งานซ่อมคอมพิวเตอร์และอุปกรณ์อิเล็กทรอนิกส์">
+    <meta name="description" content="Fixtech Demo แพลตฟอร์มจับคู่งานซ่อมคอมพิวเตอร์และอุปกรณ์อิเล็กทรอนิกส์ ฟีล Fastwork พร้อมระบบ Escrow">
     <title>Fixtech — Demo v1.8</title>
     <link rel="stylesheet" href="/app.css">
     <script src="/app.js" defer></script>
   </head>
   <body>
+    <!-- System Announcement Banner -->
+    <div id="system-announcement-banner" class="announcement-banner" hidden>
+      <div class="announcement-inner">
+        <span class="announcement-icon">📢</span>
+        <span id="announcement-text"></span>
+        <button id="announcement-close" class="announcement-close" aria-label="ปิดประกาศ">&times;</button>
+      </div>
+    </div>
+
+    <!-- Main Navigation Topbar -->
     <header class="topbar">
       <div class="topbar-inner">
-        <a class="brand" href="/" aria-label="Fixtech หน้าแรก"><span class="brand-mark">F</span>Fixtech</a>
-        <nav class="topnav" aria-label="เมนูหลัก"><a href="#how-it-works">วิธีใช้</a><a href="#demo-status">สถานะระบบ</a><a class="button button-primary" href="#workspace">ทดลองใช้งาน</a></nav>
-        <span class="demo-tag">DEMO v1.8</span>
+        <a class="brand" href="/" aria-label="Fixtech หน้าแรก">
+          <span class="brand-mark">F</span>
+          <span>Fixtech</span>
+        </a>
+        <nav class="topnav" aria-label="เมนูหลัก">
+          <a href="#how-it-works" class="nav-link">วิธีใช้</a>
+          <a href="#demo-status" class="nav-link">สถานะระบบ</a>
+          
+          <!-- When logged out -->
+          <div id="nav-logged-out" class="nav-auth-actions">
+            <a class="button button-primary" href="#workspace" id="nav-login-btn">เข้าสู่ระบบ / สมัคร</a>
+          </div>
+
+          <!-- When logged in -->
+          <div id="nav-logged-in" class="nav-user-actions" hidden>
+            <!-- Chat icon with unread badge -->
+            <button id="nav-chat-btn" class="nav-icon-btn" aria-label="ศูนย์ข้อความ แชท" title="ศูนย์ข้อความ แชท">
+              <span class="icon">💬</span>
+              <span id="unread-chat-badge" class="badge" hidden>0</span>
+            </button>
+
+            <!-- Profile Menu Button -->
+            <div class="profile-dropdown-container">
+              <button id="nav-profile-btn" class="nav-profile-btn" aria-haspopup="true" aria-expanded="false">
+                <span class="avatar" id="nav-avatar">U</span>
+                <span class="username" id="nav-username">ผู้ใช้งาน</span>
+                <span class="chevron">▾</span>
+              </button>
+
+              <!-- Floating Dropdown Menu (เมนูลอย) -->
+              <div id="profile-dropdown-menu" class="floating-menu" hidden>
+                <div class="floating-menu-header">
+                  <div>
+                    <div class="user-display" id="menu-user-display">ผู้ใช้งาน</div>
+                    <div class="user-role-badge" id="menu-user-role">ลูกค้าทั่วไป</div>
+                  </div>
+                  <button id="profile-mode-toggle" class="button button-small button-outline" type="button" title="สลับโหมดลูกค้า / ช่าง">
+                    🔄 สลับโหมด
+                  </button>
+                </div>
+                <div class="floating-menu-divider"></div>
+                <a href="#my-posts" class="floating-menu-item" id="menu-my-posts">
+                  <span>📋</span> โพสต์ของฉัน
+                </a>
+                <a href="#chat-center" class="floating-menu-item" id="menu-chat-center">
+                  <span>💬</span> ศูนย์ข้อความ แชท
+                </a>
+                <a href="#tech-financials" class="floating-menu-item tech-only-menu" id="menu-tech-financials" hidden>
+                  <span>💰</span> แดชบอร์ดการเงินช่าง
+                </a>
+                <a href="#account-settings" class="floating-menu-item" id="menu-account-settings">
+                  <span>⚙️</span> ตั้งค่าบัญชี
+                </a>
+                <div class="floating-menu-divider"></div>
+                <button class="floating-menu-item text-danger" id="menu-logout" type="button">
+                  <span>🚪</span> ออกจากระบบ
+                </button>
+              </div>
+            </div>
+          </div>
+        </nav>
+        <span class="demo-tag">DEMO v1.8 · FASTWORK</span>
       </div>
     </header>
-    <main>
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <p class="eyebrow">ซ่อมอุปกรณ์ไอที ง่ายขึ้น</p>
-          <h1 id="hero-title">ปัญหาอุปกรณ์<br>ให้ Fixtech ช่วยหาทางออก</h1>
-          <p class="intro">แพลตฟอร์มต้นแบบสำหรับสร้างงานซ่อม รับคำแนะนำเบื้องต้น และจับคู่กับช่างที่เหมาะสม</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#how-it-works">ดูวิธีทำงาน</a>
-            <a class="button button-secondary" href="#demo-status">สถานะระบบ</a>
+
+    <!-- Global Flash Message -->
+    <div id="workspace-message" class="workspace-message" role="status"></div>
+
+    <!-- MAIN APP CONTENT AREA -->
+    <main id="app-main">
+
+      <!-- ======================================================== -->
+      <!-- SECTION 1: CUSTOMER PORTAL                               -->
+      <!-- ======================================================== -->
+      <div id="customer-portal">
+
+        <!-- 1.1 Customer Home View -->
+        <section id="customer-home-view" class="portal-view">
+          <div class="hero">
+            <div class="hero-copy">
+              <p class="eyebrow">Fixtech Marketplace · ซ่อมคอมตรงใจ สไตล์ Fastwork</p>
+              <h1>ปัญหาคอมพิวเตอร์และโน้ตบุ๊ก<br>ให้ช่างผู้เชี่ยวชาญดูแล</h1>
+              <p class="intro">
+                โพสต์ประกาศหาช่างซ่อม ระบุอาการชัดเจน รับใบเสนอราคาตรงจากช่าง<br>
+                มั่นใจด้วยระบบเงินมัดจำ Escrow ช่างทำงานเสร็จ มีภาพหลักฐาน ตรวจรับงาน เงินถึงจะโอน
+              </p>
+              
+              <!-- 2 Main Action Buttons for Job Creation -->
+              <div class="hero-main-cta">
+                <div class="cta-card cta-self" id="btn-hero-self-fill" role="button" tabindex="0">
+                  <div class="cta-icon">📝</div>
+                  <div class="cta-text">
+                    <h3>กรอกด้วยตัวเอง</h3>
+                    <p>เลือกประเภท คอมตั้งโต๊ะ หรือ โน้ตบุ๊ก พร้อมฟิลเตอร์กรอกอาการเจาะจง</p>
+                  </div>
+                  <span class="cta-arrow">→</span>
+                </div>
+                <div class="cta-card cta-ai" id="btn-hero-ai-assist" role="button" tabindex="0">
+                  <div class="cta-icon">🤖</div>
+                  <div class="cta-text">
+                    <h3>ให้ AI ช่วยสร้างการ์ดงาน</h3>
+                    <p>คุยอาการกับ AI Screening แชทบอทช่วยสรุปการ์ดงานช่างให้ทันที</p>
+                  </div>
+                  <span class="cta-arrow">→</span>
+                </div>
+              </div>
+              <p class="hero-subtext">✨ ปลอดภัย 100% — ช่างต้องผ่านการยืนยันตัวตน (KYC) และระบบพักเงินจนกว่างานจะผ่านการตรวจรับ</p>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+              <div class="art-window">
+                <div class="art-window-head"><i></i><i></i><i></i></div>
+                <div class="art-window-content">
+                  <div class="art-badge-fastwork">FASTWORK ESCROW</div>
+                  <div class="art-ticket"><b>โพสต์งาน</b><span>ช่างส่งใบเสนอราคา</span></div>
+                  <div class="art-ticket"><b>มัดจำเงิน</b><span>Escrow คุ้มครอง</span></div>
+                  <div class="art-ticket"><b>ภาพหลักฐาน</b><span>ก่อน & หลังซ่อม</span></div>
+                </div>
+              </div>
+              <div class="art-note">คุ้มครองทั้งลูกค้าและช่าง<br><strong>ปลอดภัยทุกขั้นตอน</strong></div>
+            </div>
           </div>
-          <p class="notice">นี่คือระบบสาธิต ยังไม่รับงานซ่อมจริงและไม่มีการชำระเงินจริง</p>
-        </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="art-window"><div class="art-window-head"><i></i><i></i><i></i></div><div class="art-window-content"><div class="art-line short"></div><div class="art-line"></div><div class="art-ticket"><b></b><span></span></div><div class="art-ticket"><b></b><span></span></div></div></div>
-          <div class="art-note">งานซ่อมของคุณ<br><strong>ติดตามได้ทุกขั้นตอน</strong></div>
-        </div>
-      </section>
 
-      <section id="how-it-works" class="section">
-        <div class="section-heading"><p class="eyebrow">กระบวนการของ Demo</p><h2>เริ่มจากอาการ ไปจนถึงการดูแลงาน</h2></div>
-        <div class="steps">
-          <article class="step-card"><span class="step-number">01</span><h3>เล่าอาการ</h3><p>เลือกประเภทอุปกรณ์ อธิบายปัญหา และแนบภาพประกอบ</p></article>
-          <article class="step-card"><span class="step-number">02</span><h3>วิเคราะห์และประเมิน</h3><p>ระบบช่วยสรุปอาการและประเมินราคา โดยแสดงแหล่งข้อมูลให้ตรวจสอบ</p></article>
-          <article class="step-card"><span class="step-number">03</span><h3>เลือกช่างและนัดหมาย</h3><p>จับคู่หรือเลือกข้อเสนอ พูดคุย และยืนยันช่วงเวลาที่สะดวก</p></article>
-          <article class="step-card"><span class="step-number">04</span><h3>ติดตามหลังซ่อม</h3><p>จำลองการชำระเงิน พร้อมจัดการรีวิว รับประกัน และข้อพิพาทในระบบ</p></article>
+          <!-- How It Works Section -->
+          <section id="how-it-works" class="section">
+            <div class="section-heading">
+              <p class="eyebrow">ขั้นตอนการทำงาน</p>
+              <h2>ซ่อมคอมสไตล์ Fastwork ง่าย ปลอดภัย ใน 4 ขั้นตอน</h2>
+            </div>
+            <div class="steps">
+              <article class="step-card">
+                <span class="step-number">01</span>
+                <h3>1. ประกาศหาช่าง</h3>
+                <p>กรอกข้อมูลสเปกและอาการเฉพาะของคอมตั้งโต๊ะหรือโน้ตบุ๊ก หรือคุยกับ AI Screening สร้างการ์ดงาน</p>
+              </article>
+              <article class="step-card">
+                <span class="step-number">02</span>
+                <h3>2. รับใบเสนอราคา</h3>
+                <p>ช่างที่ผ่านการยืนยันตัวตนจะส่งใบเสนอราคา (แยกค่าแรง ค่าเดินทาง ค่าอุปกรณ์) แชทคุยตกลงกัน 1-1</p>
+              </article>
+              <article class="step-card">
+                <span class="step-number">03</span>
+                <h3>3. ชำระเงินเข้า Escrow</h3>
+                <p>ลูกค้าชำระเงินก่อนเริ่มงาน ระบบจะพักเงินไว้ในระบบกลางอย่างปลอดภัย ช่างมั่นใจได้เงินแน่นอน</p>
+              </article>
+              <article class="step-card">
+                <span class="step-number">04</span>
+                <h3>4. ตรวจรับงาน & โอนเงิน</h3>
+                <p>ช่างส่งรูปหลักฐานก่อนและหลังทำงาน ลูกค้าตรวจรับงานและกดเสร็จสิ้น ระบบจึงจะปล่อยเงินให้ช่าง</p>
+              </article>
+            </div>
+          </section>
+
+          <!-- Status Panel -->
+          <section id="demo-status" class="status-panel" aria-labelledby="status-title">
+            <div>
+              <p class="eyebrow">สถานะการพัฒนา</p>
+              <h2 id="status-title">ระบบต้นแบบ v1.8 (Fastwork Escrow)</h2>
+              <p>ระบบทำงานร่วมกับ PostgreSQL, Mock AI Screening Chatbot, Escrow System และแผงควบคุม Admin 9 โมดูล</p>
+            </div>
+            <dl class="status-list">
+              <div><dt>AI Screening</dt><dd id="ai-status">พร้อมใช้งาน</dd></div>
+              <div><dt>ระบบ Escrow</dt><dd id="escrow-status">พร้อมใช้งาน (จำลอง)</dd></div>
+              <div><dt>แหล่งราคาอ้างอิง</dt><dd id="market-status">Curated Demo</dd></div>
+              <div><dt>การชำระเงิน</dt><dd id="payment-status">PromptPay / Escrow Hold</dd></div>
+            </dl>
+          </section>
+        </section>
+
+        <!-- 1.2 Customer Self-Fill Form View -->
+        <section id="customer-self-fill-view" class="portal-view" hidden>
+          <div class="view-header">
+            <button class="button button-secondary btn-back-home" type="button">← กลับหน้าหลัก</button>
+            <h2>📝 สร้างงานซ่อม: กรอกข้อมูลด้วยตัวเอง</h2>
+            <p class="sub-intro">เลือกประเภทอุปกรณ์เพื่อแสดงฟอร์มเจาะจงสำหรับอาการนั้นๆ</p>
+          </div>
+
+          <form id="form-self-fill" class="job-creation-form card-box">
+            <div class="form-group-device-selector">
+              <label for="self-device-type"><strong>เลือกประเภทอุปกรณ์ *</strong></label>
+              <select id="self-device-type" name="deviceType" class="input-select large-select" required>
+                <option value="DESKTOP">🖥️ คอมตั้งโต๊ะ (Desktop PC)</option>
+                <option value="NOTEBOOK">💻 โน้ตบุ๊ก (Notebook / Laptop)</option>
+              </select>
+            </div>
+
+            <div class="form-row-grid">
+              <label>หมวดหมู่บริการ
+                <select name="category" id="self-category">
+                  <option value="HARDWARE">อุปกรณ์ / Hardware</option>
+                  <option value="SOFTWARE">โปรแกรม / Software</option>
+                </select>
+              </label>
+              <label>รูปแบบบริการ
+                <select name="serviceFormat" id="self-service-format">
+                  <option value="ONSITE">ช่างเข้าซ่อมนอกสถานที่ (On-site)</option>
+                  <option value="ONLINE">ซ่อมผ่านออนไลน์ / รีโมท (Online)</option>
+                </select>
+              </label>
+              <label>เขตพื้นที่บริการ
+                <select name="districtCode" id="self-district-select" required></select>
+              </label>
+            </div>
+
+            <!-- Dynamic Fields: Desktop PC -->
+            <div id="fields-desktop" class="device-specific-fields">
+              <div class="field-banner">🖥️ ฟิลด์สำหรับ: คอมตั้งโต๊ะ (Desktop PC)</div>
+              <label>
+                สเปกเครื่อง / ยี่ห้อเคส (ถ้าทราบ)
+                <input name="pcSpecsCase" maxlength="255" placeholder="เช่น CPU i5, การ์ดจอ RTX 3060, เคส Cooler Master">
+              </label>
+              <label>
+                สถานะไฟพาวเวอร์ / พัดลม / เสียงร้องเตือน (Beep code)
+                <input name="powerBeepStatus" maxlength="255" placeholder="เช่น ไฟติดพัดลมหมุนแล้วดับ, มีเสียงปี๊บ 3 ครั้งสั้น">
+              </label>
+              <label>
+                อาการบนหน้าจอ / สายสัญญาณที่ต่ออยู่
+                <input name="screenDisplayCables" maxlength="255" placeholder="เช่น จอดำไม่มีภาพ, ขึ้น No Signal, ต่อสาย HDMI เข้าการ์ดจอ">
+              </label>
+              <label>
+                เริ่มเป็นเมื่อไหร่ / ก่อนเป็นทำอะไรอยู่
+                <input name="problemTimeline" maxlength="255" placeholder="เช่น เป็นเมื่อวานช่วงค่ำ ก่อนเป็นกำลังเล่นเกมแล้วดับ">
+              </label>
+            </div>
+
+            <!-- Dynamic Fields: Notebook / Laptop -->
+            <div id="fields-notebook" class="device-specific-fields" hidden>
+              <div class="field-banner">💻 ฟิลด์สำหรับ: โน้ตบุ๊ก (Notebook / Laptop)</div>
+              <label>
+                ยี่ห้อและรุ่น (ดูได้จากสติกเกอร์ใต้เครื่อง) <span class="text-danger">*</span>
+                <input name="laptopBrandModel" maxlength="255" placeholder="เช่น Asus ROG Strix G15 G513, Lenovo ThinkPad X1">
+              </label>
+              <label>
+                สถานะแบตเตอรี่ / ไฟสถานะตอนเสียบสายชาร์จ
+                <input name="batteryChargingStatus" maxlength="255" placeholder="เช่น เสียบสายชาร์จแล้วไฟไม่ขึ้น, แบตหมดเร็ว, เปิดติดเฉพาะตอนเสียบชาร์จ">
+              </label>
+              <label>
+                อาการผิดปกติที่หน้าจอ คีย์บอร์ด หรือตัวเครื่อง
+                <input name="bodyKeyboardScreenStatus" maxlength="255" placeholder="เช่น หน้าจอกระพริบ, แป้นพิมพ์พิมพ์ไม่ติดบางปุ่ม, บานพับฝืด">
+              </label>
+              <label>
+                เหตุการณ์ก่อนเสีย (เคยตก กระแทก หรือโดนน้ำหรือไม่)
+                <input name="damageHistory" maxlength="255" placeholder="เช่น ไม่เคยตก, เคยน้ำหกใส่เมื่อเดือนก่อน">
+              </label>
+            </div>
+
+            <label class="wide">
+              อาการอื่นๆ เพิ่มเติม
+              <textarea name="symptom" maxlength="1000" rows="3" placeholder="อธิบายอาการเพิ่มเติมอย่างละเอียดเพื่อให้ช่างประเมินได้แม่นยำ"></textarea>
+            </label>
+
+            <label class="wide">
+              รูปภาพประกอบ (สูงสุด 3 ภาพ)
+              <input name="attachments" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+              <small>รองรับไฟล์ JPG, PNG, WebP (ขนาดไม่เกิน 10 MiB ต่อไฟล์)</small>
+            </label>
+
+            <div class="form-submit-actions">
+              <button class="button button-secondary" type="button" id="btn-self-save-draft">💾 บันทึกร่างเพื่อแก้ไขคำสรุป</button>
+              <button class="button button-primary" type="submit" id="btn-self-publish">🚀 ยืนยันการ์ดงานและเผยแพร่หาช่าง</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- 1.3 Customer AI Screening Chat View -->
+        <section id="customer-ai-chat-view" class="portal-view" hidden>
+          <div class="view-header">
+            <button class="button button-secondary btn-back-home" type="button">← กลับหน้าหลัก</button>
+            <h2>🤖 ให้ AI ช่วยวิเคราะห์อาการและสร้างการ์ดงาน</h2>
+            <p class="sub-intro">พูดคุยบอกเล่าอาการกับ AI Screening Chatbot ระบบจะประมวลผลและสร้างการ์ดงานสำหรับช่างให้โดยอัตโนมัติ</p>
+          </div>
+
+          <div class="ai-chat-layout">
+            <!-- Left: Chat conversation pane -->
+            <div class="ai-chat-pane card-box">
+              <div class="ai-chat-messages" id="ai-chat-history">
+                <div class="chat-bubble ai">
+                  <div class="bubble-avatar">🤖</div>
+                  <div class="bubble-content">
+                    <strong>Fixtech AI Screening:</strong>
+                    <p>สวัสดีครับ! ผมคือผู้ช่วยคัดกรองอาการงานซ่อม อุปกรณ์ของคุณเป็น <strong>คอมพิวเตอร์ตั้งโต๊ะ (Desktop PC)</strong> หรือ <strong>โน้ตบุ๊ก (Notebook)</strong> ครับ? และมีอาการเบื้องต้นอย่างไรบ้าง เล่าให้ผมฟังได้เลยครับ</p>
+                  </div>
+                </div>
+              </div>
+              <form id="ai-chat-input-form" class="ai-chat-form">
+                <input type="text" id="ai-user-message-input" placeholder="พิมพ์บอกเล่าอาการ หรือตอบคำถาม AI..." required autocomplete="off">
+                <button class="button button-primary" type="submit">ส่ง</button>
+              </form>
+            </div>
+
+            <!-- Right: Live Generated Draft Job Card -->
+            <div class="ai-draft-card-pane card-box">
+              <div class="draft-card-header">
+                <h3>📋 ตัวอย่างการ์ดงาน (Draft Job Card)</h3>
+                <span class="badge badge-ai" id="ai-draft-status-badge">กำลังรอข้อมูล...</span>
+              </div>
+              <div id="ai-draft-card-body" class="draft-card-body">
+                <p class="empty-state">เล่าอาการกับ AI ด้านซ้าย เพื่อให้ระบบสร้างสรุปการ์ดงานแบบสมบูรณ์</p>
+              </div>
+              <div class="draft-card-actions" id="ai-draft-actions" hidden>
+                <button class="button button-secondary" type="button" id="btn-ai-save-draft">💾 บันทึกร่าง</button>
+                <button class="button button-primary" type="button" id="btn-ai-publish">🚀 ยืนยันการ์ดงานและเผยแพร่หาช่าง</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 1.4 Job Created Success View -->
+        <section id="customer-success-view" class="portal-view" hidden>
+          <div class="success-card card-box text-center">
+            <div class="success-icon">🎉</div>
+            <h2>ดำเนินการเสร็จสิ้นเรียบร้อยแล้ว!</h2>
+            <p class="lead" id="success-job-message">การ์ดงานของคุณได้รับการเผยแพร่แล้ว ช่างผู้เชี่ยวชาญในระบบจะส่งใบเสนอราคาให้คุณตรวจสอบ</p>
+            <div class="success-details" id="success-job-details"></div>
+            <div class="success-actions">
+              <button class="button button-primary" id="btn-success-go-posts" type="button">📋 ดูใน "โพสต์ของฉัน"</button>
+              <button class="button button-secondary btn-back-home" type="button">🏠 กลับหน้าหลัก</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 1.5 My Posts View (โพสต์ของฉัน) -->
+        <section id="customer-my-posts-view" class="portal-view" hidden>
+          <div class="view-header with-action">
+            <div>
+              <h2>📋 โพสต์งานของฉัน</h2>
+              <p class="sub-intro">รายการประกาศหาช่างซ่อมของคุณ ติดตามสถานะและใบเสนอราคาที่ได้รับ</p>
+            </div>
+            <button class="button button-primary" id="btn-my-posts-add-job" type="button">+ ประกาศหาช่างใหม่</button>
+          </div>
+          <div id="customer-posts-list" class="posts-grid"></div>
+        </section>
+
+        <!-- 1.6 Job Detail View (หน้ารายละเอียดโพสต์) -->
+        <section id="customer-job-detail-view" class="portal-view" hidden>
+          <div class="view-header">
+            <button class="button button-secondary" id="btn-back-my-posts" type="button">← กลับรายการโพสต์</button>
+            <h2 id="job-detail-title">รายละเอียดงานซ่อม</h2>
+          </div>
+
+          <div class="job-detail-layout">
+            <!-- Job Card Info -->
+            <div class="job-detail-main card-box">
+              <div class="job-poster-header">
+                <span class="avatar" id="detail-poster-avatar">U</span>
+                <div>
+                  <h3 id="detail-poster-name">ลูกค้า</h3>
+                  <small id="detail-post-time">โพสต์เมื่อสักครู่</small>
+                </div>
+                <span class="badge" id="detail-job-status">POSTED</span>
+              </div>
+
+              <div class="job-specs-summary" id="detail-specs-summary"></div>
+
+              <div id="detail-images-section" class="detail-images-gallery" hidden>
+                <h4>🖼️ รูปภาพประกอบ</h4>
+                <div class="image-gallery-grid" id="detail-images-grid"></div>
+              </div>
+            </div>
+
+            <!-- Technician Quotations Section -->
+            <div class="job-detail-quotations card-box">
+              <h3>💬 ใบเสนอราคาจากช่างที่ตอบกลับ</h3>
+              <p class="sub-intro">เปรียบเทียบค่าแรง ค่าเดินทาง และรายการอุปกรณ์ จากช่างที่พร้อมดูแลคุณ</p>
+              <div id="job-detail-quotations-list" class="quotations-list">
+                <p class="empty-state">ยังไม่มีช่างส่งใบเสนอราคาเข้ามา</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 1.7 Chat Center View (หน้าศูนย์ข้อความ แชท 1-1) -->
+        <section id="customer-chat-center-view" class="portal-view" hidden>
+          <div class="view-header">
+            <h2>💬 ศูนย์ข้อความ แชท</h2>
+            <p class="sub-intro">คุยรายละเอียดกับช่าง ชำระเงินเข้า Escrow และตรวจรับงาน</p>
+          </div>
+
+          <div class="chat-center-layout card-box">
+            <!-- Chat Conversation Threads List -->
+            <div class="chat-threads-sidebar">
+              <div class="threads-header">รายการแชททั้งหมด</div>
+              <div id="chat-threads-list" class="threads-list">
+                <p class="empty-state">ไม่มีแชทที่กำลังดำเนินอยู่</p>
+              </div>
+            </div>
+
+            <!-- Active 1-1 Chat Pane -->
+            <div class="chat-room-pane" id="active-chat-room">
+              <!-- Chat Room Topbar -->
+              <div class="chat-room-header">
+                <div>
+                  <h3 id="chat-target-name">เลือกแชทเพื่อเริ่มคุย</h3>
+                  <small id="chat-job-ref">อ้างอิงงาน: -</small>
+                </div>
+                <div class="chat-room-actions">
+                  <button class="button button-small button-outline text-danger" id="btn-chat-report-user" type="button">⚠️ รายงานผู้ใช้</button>
+                  <button class="button button-small button-outline" id="btn-chat-contact-admin" type="button">🛡️ ติดต่อเจ้าหน้าที่</button>
+                </div>
+              </div>
+
+              <!-- Escrow & Quotation Status Bar in Chat -->
+              <div id="chat-escrow-banner" class="chat-escrow-bar" hidden>
+                <div class="escrow-summary">
+                  <span class="escrow-icon">🔒</span>
+                  <div id="chat-escrow-desc">
+                    <strong>ใบเสนอราคา:</strong> <span id="chat-quote-amount">0</span> บาท 
+                    (<span id="chat-escrow-status-text">ยังไม่ชำระเงิน</span>)
+                  </div>
+                </div>
+                <div class="escrow-actions" id="chat-escrow-actions">
+                  <button class="button button-primary button-small" id="btn-chat-pay-escrow" type="button">💳 ยอมรับ & ชำระเงิน Escrow</button>
+                </div>
+              </div>
+
+              <!-- Work Proofs Approval Bar in Chat -->
+              <div id="chat-work-proofs-banner" class="chat-proofs-bar" hidden>
+                <div class="proofs-content">
+                  <h4>📸 หลักฐานการทำงานจากช่าง (ก่อนและหลังซ่อม)</h4>
+                  <div id="chat-proofs-preview" class="proofs-preview-row"></div>
+                </div>
+                <div class="proofs-action" id="chat-proofs-action-box">
+                  <button class="button button-primary button-small" id="btn-chat-approve-job" type="button">✅ ตรวจรับงานและเสร็จสิ้น</button>
+                </div>
+              </div>
+
+              <!-- Message Stream -->
+              <div class="chat-messages-container" id="chat-messages-stream">
+                <p class="empty-state">เลือกบทสนทนาจากแถบด้านซ้าย</p>
+              </div>
+
+              <!-- Chat Input Box -->
+              <form id="chat-message-send-form" class="chat-send-bar">
+                <input type="text" id="chat-message-text" placeholder="พิมพ์ข้อความคุยกับช่าง..." required autocomplete="off">
+                <button class="button button-primary" type="submit">ส่ง</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+      </div> <!-- End #customer-portal -->
+
+      <!-- ======================================================== -->
+      <!-- SECTION 2: TECHNICIAN PORTAL                             -->
+      <!-- ======================================================== -->
+      <div id="tech-portal" hidden>
+
+        <!-- 2.1 Technician Job Board View -->
+        <section id="tech-job-board-view" class="portal-view">
+          <div class="view-header with-action">
+            <div>
+              <p class="eyebrow">TECHNICIAN WORKSPACE</p>
+              <h2>🛠️ กระดานงานลูกค้าทั้งหมด</h2>
+              <p class="sub-intro">ค้นหางานซ่อมที่เปิดอยู่ เสนอราคาและรับงานตรงจากลูกค้า</p>
+            </div>
+            <div class="filter-controls">
+              <select id="tech-filter-district" class="input-select">
+                <option value="">ทุกเขตพื้นที่</option>
+              </select>
+              <select id="tech-filter-device" class="input-select">
+                <option value="">ทุกอุปกรณ์</option>
+                <option value="DESKTOP">คอมตั้งโต๊ะ</option>
+                <option value="NOTEBOOK">โน้ตบุ๊ก</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- KYC Warning Banner if not approved -->
+          <div id="tech-kyc-alert-banner" class="alert-banner warning" hidden>
+            <span>⚠️ <strong>บัญชีของคุณยังไม่ได้รับการอนุมัติ KYC:</strong> คุณสามารถดูงานได้ แต่ยังไม่สามารถส่งใบเสนอราคาได้จนกว่าจะส่งเอกสารยืนยันตัวตน</span>
+            <button class="button button-small button-primary" id="btn-tech-goto-kyc" type="button">ส่งเอกสาร KYC</button>
+          </div>
+
+          <!-- Open Jobs Grid -->
+          <div id="tech-open-jobs-list" class="posts-grid">
+            <p class="empty-state">กำลังโหลดงานซ่อมที่เปิดอยู่...</p>
+          </div>
+        </section>
+
+        <!-- 2.2 Technician Financial Dashboard -->
+        <section id="tech-financials-view" class="portal-view" hidden>
+          <div class="view-header">
+            <button class="button button-secondary" id="btn-back-tech-board" type="button">← กลับกระดานงาน</button>
+            <h2>💰 แดชบอร์ดการเงินช่าง</h2>
+            <p class="sub-intro">สรุปรายได้ ยอดเงินพักในระบบ Escrow และรายการรอโอนเงินจากผู้ดูแลระบบ</p>
+          </div>
+
+          <div class="financials-grid">
+            <div class="stat-card">
+              <div class="stat-label">รายได้วันนี้</div>
+              <div class="stat-value text-success" id="fin-stat-today">0 ฿</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">รายได้เดือนนี้</div>
+              <div class="stat-value text-success" id="fin-stat-month">0 ฿</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">รอ Admin โอนเงิน</div>
+              <div class="stat-value text-warning" id="fin-stat-pending">0 ฿</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">เงินพักในระบบ (Escrow)</div>
+              <div class="stat-value text-info" id="fin-stat-escrow">0 ฿</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">งานที่สำเร็จทั้งหมด</div>
+              <div class="stat-value" id="fin-stat-count">0 งาน</div>
+            </div>
+          </div>
+
+          <div class="card-box mt-4">
+            <h3>ประวัติรายการโอนเงิน / รายการ Escrow</h3>
+            <div id="tech-payouts-history-list">
+              <p class="empty-state">ยังไม่มีรายการโอนเงิน</p>
+            </div>
+          </div>
+        </section>
+
+      </div> <!-- End #tech-portal -->
+
+      <!-- ======================================================== -->
+      <!-- SECTION 3: ADMIN CONSOLE PORTAL (DEDICATED 9 MODULES)    -->
+      <!-- ======================================================== -->
+      <div id="admin-portal" hidden>
+        <div class="admin-layout">
+          
+          <!-- Left Sidebar -->
+          <aside class="admin-sidebar">
+            <div class="admin-brand">
+              <span class="brand-mark admin-mark">A</span>
+              <div>
+                <strong>Fixtech Admin</strong>
+                <small>คอนโซลผู้ดูแลระบบ</small>
+              </div>
+            </div>
+            <nav class="admin-nav" aria-label="เมนูผู้ดูแล">
+              <button class="admin-nav-item active" data-tab="admin-overview">
+                <span>📊</span> ภาพรวมระบบ
+              </button>
+              <button class="admin-nav-item" data-tab="admin-users">
+                <span>👥</span> จัดการผู้ใช้
+              </button>
+              <button class="admin-nav-item" data-tab="admin-kyc">
+                <span>🪪</span> ยืนยันตัวตนช่าง (KYC)
+                <span class="nav-badge" id="admin-badge-kyc" hidden>0</span>
+              </button>
+              <button class="admin-nav-item" data-tab="admin-jobs">
+                <span>🛠️</span> จัดการโพสต์งาน
+              </button>
+              <button class="admin-nav-item" data-tab="admin-reports">
+                <span>🚨</span> รายงานจากผู้ใช้
+                <span class="nav-badge" id="admin-badge-reports" hidden>0</span>
+              </button>
+              <button class="admin-nav-item" data-tab="admin-disputes">
+                <span>⚖️</span> ข้อพิพาท
+                <span class="nav-badge" id="admin-badge-disputes" hidden>0</span>
+              </button>
+              <button class="admin-nav-item" data-tab="admin-finance">
+                <span>💸</span> การเงิน / โอนให้ช่าง
+                <span class="nav-badge" id="admin-badge-finance" hidden>0</span>
+              </button>
+              <button class="admin-nav-item" data-tab="admin-settings">
+                <span>⚙️</span> ตั้งค่าระบบ
+              </button>
+              <button class="admin-nav-item" data-tab="admin-audit">
+                <span>📜</span> ประวัติการทำงาน (Audit)
+              </button>
+            </nav>
+            <div class="admin-sidebar-footer">
+              <button class="button button-small button-outline text-danger w-100" id="admin-logout-btn" type="button">
+                ออกจากระบบ Admin
+              </button>
+            </div>
+          </aside>
+
+          <!-- Admin Main Content -->
+          <div class="admin-content-pane">
+            
+            <!-- Module 1: Dashboard ภาพรวม -->
+            <section id="admin-overview" class="admin-section active">
+              <div class="admin-section-header">
+                <h2>📊 แดชบอร์ดภาพรวมระบบ</h2>
+                <small>สรุปตัวเลขสถิติและงานเร่งด่วนที่ต้องดำเนินการ</small>
+              </div>
+              <div class="admin-stats-grid">
+                <div class="admin-stat-card">
+                  <div class="label">ผู้ใช้ทั้งหมด</div>
+                  <div class="val" id="adm-stat-users">0</div>
+                </div>
+                <div class="admin-stat-card">
+                  <div class="label">ช่างทั้งหมด</div>
+                  <div class="val" id="adm-stat-providers">0</div>
+                </div>
+                <div class="admin-stat-card">
+                  <div class="label">งานที่เปิดอยู่</div>
+                  <div class="val" id="adm-stat-open-jobs">0</div>
+                </div>
+                <div class="admin-stat-card">
+                  <div class="label">งานเสร็จวันนี้</div>
+                  <div class="val text-success" id="adm-stat-done-today">0</div>
+                </div>
+              </div>
+
+              <!-- Urgent Action Cards -->
+              <h3 class="mt-4">🚨 เรื่องที่ต้องจัดการเร่งด่วน</h3>
+              <div class="urgent-cards-grid">
+                <div class="urgent-card" data-goto="admin-kyc">
+                  <h4>ช่างรอตรวจสอบ KYC</h4>
+                  <div class="urgent-count text-danger" id="urgent-kyc-count">0</div>
+                  <span>คลิกเพื่อตรวจสอบเอกสาร →</span>
+                </div>
+                <div class="urgent-card" data-goto="admin-reports">
+                  <h4>รายงานใหม่จากผู้ใช้</h4>
+                  <div class="urgent-count text-danger" id="urgent-reports-count">0</div>
+                  <span>คลิกเพื่อดูรายงานและแชท →</span>
+                </div>
+                <div class="urgent-card" data-goto="admin-disputes">
+                  <h4>ข้อพิพาทค้าง</h4>
+                  <div class="urgent-count text-warning" id="urgent-disputes-count">0</div>
+                  <span>คลิกเพื่อตัดสินข้อพิพาท →</span>
+                </div>
+                <div class="urgent-card" data-goto="admin-finance">
+                  <h4>รายการรอโอนเงินให้ช่าง</h4>
+                  <div class="urgent-count text-info" id="urgent-payouts-count">0</div>
+                  <span>คลิกเพื่ออัปโหลดสลิปโอนเงิน →</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Module 2: จัดการผู้ใช้ -->
+            <section id="admin-users" class="admin-section">
+              <div class="admin-section-header">
+                <h2>👥 จัดการผู้ใช้</h2>
+                <div class="admin-search-bar">
+                  <input type="text" id="admin-user-search" placeholder="ค้นหาตามชื่อ, อีเมล, เบอร์โทร...">
+                  <select id="admin-user-filter-role">
+                    <option value="">ทุกประเภท</option>
+                    <option value="CUSTOMER_GENERAL">ลูกค้าทั่วไป</option>
+                    <option value="CUSTOMER_BUSINESS">ลูกค้าบริษัท</option>
+                    <option value="TECHNICIAN">ช่าง</option>
+                  </select>
+                </div>
+              </div>
+              <div class="table-container">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>ชื่อ</th>
+                      <th>อีเมล</th>
+                      <th>ประเภท</th>
+                      <th>สถานะ</th>
+                      <th>จัดการ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-users-table-body"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- Module 3: ตรวจสอบยืนยันตัวตนช่าง (KYC) -->
+            <section id="admin-kyc" class="admin-section">
+              <div class="admin-section-header">
+                <h2>🪪 ตรวจสอบยืนยันตัวตนช่าง (KYC)</h2>
+                <small>อนุมัติหรือปฏิเสธคำขอยืนยันตัวตนเพื่อให้ช่างสามารถส่งใบเสนอราคาได้</small>
+              </div>
+              <div id="admin-kyc-list" class="kyc-requests-list">
+                <p class="empty-state">ไม่มีรายการรอตรวจสอบ KYC</p>
+              </div>
+            </section>
+
+            <!-- Module 4: จัดการโพสงาน -->
+            <section id="admin-jobs" class="admin-section">
+              <div class="admin-section-header">
+                <h2>🛠️ จัดการโพสต์งาน</h2>
+                <div class="admin-search-bar">
+                  <select id="admin-jobs-filter-status">
+                    <option value="">ทุกสถานะ</option>
+                    <option value="POSTED">กำลังหาช่าง</option>
+                    <option value="IN_PROGRESS">กำลังดำเนินงาน</option>
+                    <option value="COMPLETED">เสร็จสิ้น</option>
+                  </select>
+                </div>
+              </div>
+              <div class="table-container">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>รหัสงาน</th>
+                      <th>ประเภท</th>
+                      <th>อาการ</th>
+                      <th>สถานะ</th>
+                      <th>การแสดงผล</th>
+                      <th>จัดการ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-jobs-table-body"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- Module 5: หน้ารายงานผู้ใช้ / ติดต่อเจ้าหน้าที่ -->
+            <section id="admin-reports" class="admin-section">
+              <div class="admin-section-header">
+                <h2>🚨 หน้ารายงานผู้ใช้ / ติดต่อเจ้าหน้าที่</h2>
+              </div>
+              <div id="admin-reports-list" class="reports-list">
+                <p class="empty-state">ไม่มีรายงานที่รอการจัดการ</p>
+              </div>
+            </section>
+
+            <!-- Module 6: หน้าข้อพิพาท -->
+            <section id="admin-disputes" class="admin-section">
+              <div class="admin-section-header">
+                <h2>⚖️ การจัดการข้อพิพาท (Disputes)</h2>
+                <small>ตัดสินข้อพิพาท: คงผลเสร็จสิ้นและโอนเงิน, ส่งกลับให้แก้ไข, หรือยกเลิกและคืนเงิน</small>
+              </div>
+              <div id="admin-disputes-list" class="disputes-list">
+                <p class="empty-state">ไม่มีข้อพิพาทค้าง</p>
+              </div>
+            </section>
+
+            <!-- Module 7: การเงิน / การโอนเงินให้ช่าง -->
+            <section id="admin-finance" class="admin-section">
+              <div class="admin-section-header">
+                <h2>💸 การเงิน / รายการโอนเงินให้ช่าง</h2>
+                <button class="button button-small button-outline" id="btn-admin-export-csv" type="button">
+                  📥 ส่งออกรายงาน CSV
+                </button>
+              </div>
+              <div class="finance-tabs">
+                <button class="tab-btn active" data-ftab="payouts">รอโอนให้ช่าง</button>
+                <button class="tab-btn" data-ftab="escrow">รายการชำระ Escrow</button>
+              </div>
+              <div id="admin-finance-content" class="table-container mt-3">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>รหัสงาน</th>
+                      <th>ช่าง</th>
+                      <th>ยอดเต็ม</th>
+                      <th>หักค่าธรรมเนียม</th>
+                      <th>ยอดโอนสุทธิ</th>
+                      <th>บัญชีธนาคาร</th>
+                      <th>การดำเนินการ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-finance-table-body"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- Module 8: ตั้งค่าระบบ -->
+            <section id="admin-settings" class="admin-section">
+              <div class="admin-section-header">
+                <h2>⚙️ ตั้งค่าระบบ</h2>
+              </div>
+              <form id="admin-settings-form" class="card-box max-w-600">
+                <label>
+                  อัตราค่าธรรมเนียมแพลตฟอร์ม (%)
+                  <input type="number" id="set-platform-fee" min="0" max="50" step="0.5" required>
+                </label>
+                <label>
+                  ประกาศของระบบ (แสดงบนแถบประกาศหน้าเว็บ)
+                  <textarea id="set-announcement" rows="3" placeholder="ข้อความประกาศ..."></textarea>
+                </label>
+                <button class="button button-primary" type="submit">บันทึกการตั้งค่า</button>
+              </form>
+            </section>
+
+            <!-- Module 9: ประวัติการทำงาน Admin (Audit Logs) -->
+            <section id="admin-audit" class="admin-section">
+              <div class="admin-section-header">
+                <h2>📜 ประวัติการทำงานของผู้ดูแล (Audit Log)</h2>
+                <small>บันทึกประวัติการกระทำสำคัญ อ่านได้อย่างเดียว ไม่สามารถลบหรือแก้ไขได้</small>
+              </div>
+              <div class="table-container">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>วันเวลา</th>
+                      <th>แอดมิน</th>
+                      <th>การกระทำ</th>
+                      <th>เป้าหมาย</th>
+                      <th>เหตุผล</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-audit-table-body"></tbody>
+                </table>
+              </div>
+            </section>
+
+          </div>
         </div>
-      </section>
+      </div> <!-- End #admin-portal -->
 
-      <section id="demo-status" class="status-panel" aria-labelledby="status-title">
-        <div><p class="eyebrow">สถานะการพัฒนา</p><h2 id="status-title">ระบบต้นแบบ</h2><p>AI ใช้ Ollama ในเครื่องเมื่อเปิดใช้งาน ส่วนราคามาจากตัวอย่าง curated ที่ไม่ใช่ราคาตลาดสด</p></div>
-        <dl class="status-list">
-          <div><dt>AI วิเคราะห์</dt><dd id="ai-status">กำลังตรวจสอบ…</dd></div>
-          <div><dt>แหล่งราคาอ้างอิง</dt><dd id="market-status">กำลังตรวจสอบ…</dd></div>
-          <div><dt>การชำระเงิน</dt><dd id="payment-status">กำลังตรวจสอบ…</dd></div>
-        </dl>
-      </section>
-
+      <!-- ======================================================== -->
+      <!-- SECTION 4: AUTH & WORKSPACE (COMPATIBLE WITH V1.8)       -->
+      <!-- ======================================================== -->
       <section id="workspace" class="workspace" aria-labelledby="workspace-title">
-        <div class="section-heading"><p class="eyebrow">พื้นที่ทดลองระบบ</p><h2 id="workspace-title">เข้าสู่ระบบหรือสมัครบัญชีทดลอง</h2><p>สมัครเป็นลูกค้าทั่วไปหรือลูกค้าบริษัทได้เอง ส่วนบัญชีช่างและผู้ดูแลใช้ข้อมูลตัวอย่างใน README</p></div>
+        <div class="section-heading">
+          <p class="eyebrow">พื้นที่ทดลองระบบ</p>
+          <h2 id="workspace-title">เข้าสู่ระบบหรือสมัครบัญชีทดลอง</h2>
+          <p>สมัครเป็นลูกค้าทั่วไปหรือลูกค้าบริษัทได้เอง ส่วนบัญชีช่างและผู้ดูแลใช้ข้อมูลตัวอย่างใน README</p>
+        </div>
         <div id="auth-switch" class="auth-switch" role="group" aria-label="เลือกวิธีเข้าใช้งาน">
           <button id="show-login" class="button button-primary" type="button" aria-pressed="true">เข้าสู่ระบบ</button>
           <button id="show-register" class="button button-secondary" type="button" aria-pressed="false">สมัครบัญชี</button>
@@ -65,7 +834,12 @@
           <button class="button button-primary" type="submit">เข้าสู่ระบบ</button>
         </form>
         <form id="register-form" class="register-form" hidden>
-          <label>ประเภทบัญชี<select name="role" required><option value="CUSTOMER_GENERAL">ลูกค้าทั่วไป</option><option value="CUSTOMER_BUSINESS">ลูกค้าบริษัท</option></select></label>
+          <label>ประเภทบัญชี
+            <select name="role" required>
+              <option value="CUSTOMER_GENERAL">ลูกค้าทั่วไป</option>
+              <option value="CUSTOMER_BUSINESS">ลูกค้าบริษัท</option>
+            </select>
+          </label>
           <label>ชื่อที่แสดง<input name="displayName" maxlength="100" autocomplete="name" required placeholder="เช่น มายด์"></label>
           <label>อีเมลของคุณ<input name="email" type="email" maxlength="254" autocomplete="email" required placeholder="เช่น mind@example.com"><small>อีเมลตัวอย่างเป็นเพียงคำแนะนำ ให้ใช้อีเมลที่ยังไม่เคยสมัครในฐานทดสอบนี้</small></label>
           <label class="registration-company" hidden>ชื่อบริษัท<input name="companyName" maxlength="160" placeholder="เช่น บริษัทตัวอย่าง จำกัด"></label>
@@ -73,29 +847,65 @@
           <label>ยืนยันรหัสผ่าน<input name="confirmPassword" type="password" minlength="12" maxlength="128" autocomplete="new-password" required></label>
           <button class="button button-primary" type="submit">สมัครและเข้าสู่ระบบ</button>
         </form>
-        <p id="workspace-message" class="workspace-message" role="status"></p>
+
         <div id="dashboard" hidden>
-          <div class="dashboard-head"><p id="user-label"></p><div><button id="notification-button" class="button button-secondary" type="button">การแจ้งเตือน</button> <button id="logout-button" class="button button-secondary" type="button">ออกจากระบบ</button></div></div>
-          <form id="job-form" class="job-form" hidden>
-            <h3>สร้างงานซ่อม</h3>
-            <div class="form-grid">
-              <label>ประเภทอุปกรณ์/งาน<select name="category"><option value="HARDWARE">Hardware</option><option value="SOFTWARE">Software</option></select></label>
-              <label>รูปแบบบริการ<select name="serviceFormat"><option value="ONSITE">ให้บริการที่สถานที่</option><option value="ONLINE">ออนไลน์</option></select></label>
-              <label>เขตบริการ<select name="districtCode" id="district-select" required></select></label>
-              <label class="company-field" hidden>ยี่ห้อ<input name="manufacturer" maxlength="100"></label>
-              <label class="company-field" hidden>รุ่น<input name="model" maxlength="100"></label>
-              <label class="company-field" hidden>เวลาที่สะดวก<input name="preferredTimeNote" maxlength="200" placeholder="เช่น วันธรรมดา 9.00–17.00"></label>
-              <label class="wide">อาการที่พบ<textarea name="symptom" maxlength="1000" required></textarea></label>
-              <label class="wide">รูปภาพประกอบ (สูงสุด 3 ภาพ)<input name="attachments" type="file" accept="image/jpeg,image/png,image/webp" multiple><small>รองรับ JPG, PNG และ WebP · จะถามความยินยอมก่อนอัปโหลด</small></label>
+          <div class="dashboard-head">
+            <p id="user-label"></p>
+            <div>
+              <button id="notification-button" class="button button-secondary" type="button">การแจ้งเตือน</button>
+              <button id="logout-button" class="button button-secondary" type="button">ออกจากระบบ</button>
             </div>
-            <button class="button button-primary" type="submit">สร้างฉบับร่างและวิเคราะห์</button>
-          </form>
-          <div id="job-list" class="job-list"></div>
+          </div>
+          <!-- Hidden legacy elements retained for contract -->
+          <form id="job-form" class="job-form" hidden></form>
+          <div id="job-list" class="job-list" hidden></div>
           <div id="admin-list" class="job-list" hidden></div>
         </div>
-    </section>
+      </section>
+
     </main>
-    <dialog id="app-dialog" aria-labelledby="dialog-title"><form class="dialog-card" id="dialog-form" method="dialog"><div class="dialog-head"><div><h2 id="dialog-title"></h2><p id="dialog-description"></p></div><button class="dialog-close" type="button" aria-label="ปิด" data-dialog-close>×</button></div><div id="dialog-body" class="dialog-body"></div><div id="dialog-actions" class="dialog-actions"></div></form></dialog>
-    <footer><span>Fixtech Demo v1.8</span><span>ข้อมูลสังเคราะห์เท่านั้น · ไม่มีการซ่อมหรือชำระเงินจริง</span></footer>
+
+    <!-- Modal Dialog (Strictly Preserved for UI Dialogs) -->
+    <dialog id="app-dialog" aria-labelledby="dialog-title">
+      <form class="dialog-card" id="dialog-form" method="dialog">
+        <div class="dialog-head">
+          <div>
+            <h2 id="dialog-title"></h2>
+            <p id="dialog-description"></p>
+          </div>
+          <button class="dialog-close" type="button" aria-label="ปิด" data-dialog-close>&times;</button>
+        </div>
+        <div id="dialog-body" class="dialog-body"></div>
+        <div id="dialog-actions" class="dialog-actions"></div>
+      </form>
+    </dialog>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-inner">
+        <div class="footer-col">
+          <strong>Fixtech Demo v1.8</strong>
+          <p>ระบบจับคู่งานซ่อมคอมพิวเตอร์และอุปกรณ์อิเล็กทรอนิกส์ สไตล์ Fastwork ปลอดภัยด้วย Escrow</p>
+        </div>
+        <div class="footer-col">
+          <strong>การใช้งาน</strong>
+          <a href="#how-it-works">วิธีประกาศงาน</a>
+          <a href="#demo-status">ตรวจสอบสถานะ</a>
+        </div>
+        <div class="footer-col">
+          <strong>เกี่ยวกับ Fixtech</strong>
+          <a href="#how-it-works">ระบบ Escrow</a>
+          <a href="#how-it-works">การยืนยันตัวตนช่าง (KYC)</a>
+        </div>
+        <div class="footer-col">
+          <strong>ติดต่อเรา</strong>
+          <span>support@fixtech.demo</span>
+          <span>กรุงเทพมหานคร ประเทศไทย</span>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>ข้อมูลสังเคราะห์สำหรับสาธิตเท่านั้น · ไม่มีการซ่อมหรือชำระเงินจริง</span>
+      </div>
+    </footer>
   </body>
 </html>

@@ -827,6 +827,88 @@ erDiagram
 | `price_estimates.created_at` | `timestamptz NOT NULL DEFAULT now()` | — | เวลาบันทึก snapshot/ผล unavailable |
 | `appointments.created_at` | `timestamptz NOT NULL DEFAULT now()` | — | เวลาสร้าง proposal |
 
+
+| `users.id_card_number` | `varchar(20) NULL` | — | เลขบัตรประจำตัวประชาชน (13 หลัก) |
+| `users.bank_name` | `varchar(100) NULL` | — | ชื่อธนาคารของผู้ใช้ |
+| `users.bank_account_number` | `varchar(50) NULL` | — | เลขที่บัญชีธนาคาร |
+| `users.bank_account_name` | `varchar(150) NULL` | — | ชื่อเจ้าของบัญชีธนาคาร |
+| `users.is_suspended` | `boolean NOT NULL DEFAULT false` | — | สถานะระงับการใช้งานโดย Admin |
+| `users.suspension_reason` | `varchar(500) NULL` | — | เหตุผลการระงับการใช้งาน |
+| `users.suspended_at` | `timestamptz NULL` | — | วันเวลาที่ถูกระงับ |
+| `users.suspended_by_admin_id` | `uuid NULL` | FK → `users.id` | Admin ผู้สั่งระงับ |
+| `provider_profiles.id_card_number` | `varchar(20) NULL` | — | เลขบัตร ปชช. สำหรับยืนยันตัวตนช่าง (KYC) |
+| `provider_profiles.id_card_image_url` | `varchar(500) NULL` | — | URL/path รูปถ่ายบัตร ปชช. |
+| `provider_profiles.selfie_image_url` | `varchar(500) NULL` | — | URL/path รูปเซลฟี่คู่บัตร ปชช. |
+| `provider_profiles.bank_name` | `varchar(100) NULL` | — | ชื่อธนาคารสำหรับรับเงินค่าจ้าง |
+| `provider_profiles.bank_account_number` | `varchar(50) NULL` | — | เลขที่บัญชีธนาคาร |
+| `provider_profiles.bank_account_name` | `varchar(150) NULL` | — | ชื่อบัญชี (ต้องตรงกับบัตร ปชช.) |
+| `provider_profiles.skills_summary` | `text NULL` | — | สรุปทักษะและความถนัดของช่าง |
+| `provider_profiles.kyc_status` | `varchar(30) NOT NULL DEFAULT 'APPROVED'` | CHECK | สถานะตรวจเอกสาร: NOT_SUBMITTED, PENDING, APPROVED, REJECTED |
+| `provider_profiles.kyc_rejection_reason` | `varchar(500) NULL` | — | เหตุผลกรณีปฏิเสธเอกสารส่งกลับให้ช่างแก้ไข |
+| `provider_profiles.kyc_submitted_at` | `timestamptz NULL` | — | วันเวลาที่ส่งเอกสาร KYC |
+| `provider_profiles.kyc_reviewed_at` | `timestamptz NULL` | — | วันเวลาที่ Admin ตรวจเอกสาร |
+| `provider_profiles.kyc_reviewed_by_admin_id` | `uuid NULL` | FK → `users.id` | Admin ผู้ตรวจเอกสาร |
+| `jobs.device_type` | `varchar(30) NULL` | CHECK | ประเภทเครื่อง: DESKTOP, NOTEBOOK, OTHER |
+| `jobs.device_brand_or_model` | `varchar(150) NULL` | — | สเปก/ยี่ห้อเคส PC หรือ ยี่ห้อ/รุ่น Notebook |
+| `jobs.power_fan_beep_status` | `text NULL` | — | ไฟพาวเวอร์/พัดลม/เสียงร้องเตือน (PC) |
+| `jobs.screen_cable_status` | `text NULL` | — | อาการบนหน้าจอ/สายสัญญาณ (PC) |
+| `jobs.pre_incident_event` | `text NULL` | — | เหตุการณ์ก่อนเกิดปัญหา/เริ่มเป็นเมื่อไหร่ |
+| `jobs.battery_charging_status` | `text NULL` | — | สถานะแบตเตอรี่/สายชาร์จ (Notebook) |
+| `jobs.chassis_screen_keyboard_status` | `text NULL` | — | อาการที่จอ/คีย์บอร์ด/บานพับ/ความร้อน (Notebook) |
+| `jobs.damage_history` | `text NULL` | — | ประวัติตกหล่น/ความชื้น/โดนน้ำ (Notebook) |
+| `jobs.other_symptoms` | `text NULL` | — | อาการอื่นๆ เพิ่มเติม |
+| `jobs.is_hidden` | `boolean NOT NULL DEFAULT false` | — | ปิดการแสดงผลโพสต์โดย Admin |
+| `jobs.hidden_reason` | `varchar(500) NULL` | — | เหตุผลการซ่อนโพสต์ |
+| `jobs.hidden_at` | `timestamptz NULL` | — | วันเวลาที่ถูกซ่อน |
+| `jobs.hidden_by_admin_id` | `uuid NULL` | FK → `users.id` | Admin ผู้สั่งซ่อนโพสต์ |
+| `jobs.ai_draft_checklist` | `jsonb NULL` | — | รายการข้อมูลสำคัญที่ช่างควรรู้จาก AI screening |
+| `offers.labor_fee` | `numeric(12,2) NULL` | CHECK >= 0 | ค่าแรงในใบเสนอราคา |
+| `offers.transport_fee` | `numeric(12,2) NULL` | CHECK >= 0 | ค่าเดินทางในใบเสนอราคา |
+| `offers.items_detail` | `jsonb NULL` | — | รายการสิ่งที่ลูกค้าจะได้รับในใบเสนอราคา |
+| `job_work_proofs.id` | `uuid NOT NULL` | PK | รหัสหลักฐานการทำงาน |
+| `job_work_proofs.job_id` | `uuid NOT NULL` | FK → `jobs.id`, index | งานที่ส่งหลักฐาน |
+| `job_work_proofs.provider_id` | `uuid NOT NULL` | FK → `provider_profiles.id` | ช่างผู้ส่งหลักฐาน |
+| `job_work_proofs.proof_type` | `varchar(20) NOT NULL` | CHECK | ประเภท: BEFORE_WORK (ก่อนเริ่มทำ), AFTER_WORK (หลังทำเสร็จ) |
+| `job_work_proofs.image_url` | `varchar(500) NOT NULL` | — | ที่อยู่รูปถ่ายหลักฐาน |
+| `job_work_proofs.original_filename` | `varchar(255) NULL` | — | ชื่อไฟล์ดั้งเดิม |
+| `job_work_proofs.note` | `text NULL` | — | คำอธิบายเพิ่มเติม |
+| `job_work_proofs.created_at` | `timestamptz NOT NULL DEFAULT now()` | — | เวลาอัปโหลด |
+| `escrow_payments.id` | `uuid NOT NULL` | PK | รหัสธุรกรรม Escrow |
+| `escrow_payments.job_id` | `uuid NOT NULL` | FK → `jobs.id`, index | งานที่ชำระ |
+| `escrow_payments.customer_user_id` | `uuid NOT NULL` | FK → `users.id` | ลูกค้าผู้ชำระเงิน |
+| `escrow_payments.provider_id` | `uuid NULL` | FK → `provider_profiles.id` | ช่างผู้รับเงิน |
+| `escrow_payments.total_amount` | `numeric(12,2) NOT NULL` | CHECK > 0 | ยอดรวมที่ลูกค้าชำระ |
+| `escrow_payments.platform_fee_percent` | `numeric(5,2) NOT NULL DEFAULT 10.00` | — | อัตราร้อยละค่าธรรมเนียมแพลตฟอร์ม |
+| `escrow_payments.platform_fee` | `numeric(12,2) NOT NULL DEFAULT 0.00` | — | ยอดหักค่าธรรมเนียมแพลตฟอร์ม |
+| `escrow_payments.net_provider_amount` | `numeric(12,2) NOT NULL` | CHECK >= 0 | ยอดสุทธิที่ช่างจะได้รับ |
+| `escrow_payments.currency` | `char(3) NOT NULL DEFAULT 'THB'` | CHECK | สกุลเงิน |
+| `escrow_payments.status` | `varchar(30) NOT NULL DEFAULT 'HOLDING'` | CHECK | HOLDING, PENDING_PAYOUT, TRANSFERRED, DISPUTED_HOLD, REFUNDED_FULL, REFUNDED_PARTIAL |
+| `escrow_payments.transfer_slip_url` | `varchar(500) NULL` | — | ลิงก์สลิปโอนเงินให้ช่าง |
+| `escrow_payments.transferred_at` | `timestamptz NULL` | — | วันเวลาที่ Admin โอนเงินให้ช่าง |
+| `escrow_payments.transferred_by_admin_id` | `uuid NULL` | FK → `users.id` | Admin ผู้โอนเงิน |
+| `escrow_payments.refund_amount` | `numeric(12,2) NULL` | — | ยอดเงินที่คืนลูกค้า |
+| `escrow_payments.refund_reason` | `varchar(500) NULL` | — | เหตุผลการคืนเงิน |
+| `escrow_payments.refunded_at` | `timestamptz NULL` | — | วันเวลาที่คืนเงิน |
+| `escrow_payments.created_at` | `timestamptz NOT NULL DEFAULT now()` | — | วันเวลาชำระเงินเข้า Escrow |
+| `escrow_payments.updated_at` | `timestamptz NOT NULL DEFAULT now()` | — | วันเวลาปรับปรุงสถานะ |
+| `user_reports.id` | `uuid NOT NULL` | PK | รหัสเรื่องร้องเรียน |
+| `user_reports.reporter_user_id` | `uuid NOT NULL` | FK → `users.id` | ผู้ร้องเรียน/ติดต่อ |
+| `user_reports.reported_user_id` | `uuid NULL` | FK → `users.id` | ผู้ถูกรายงาน |
+| `user_reports.job_id` | `uuid NULL` | FK → `jobs.id` | งานที่เกี่ยวข้อง |
+| `user_reports.report_type` | `varchar(30) NOT NULL` | CHECK | USER_REPORT (รายงานผู้ใช้), CONTACT_ADMIN (ติดต่อเจ้าหน้าที่) |
+| `user_reports.reason` | `text NOT NULL` | CHECK len > 0 | รายละเอียดเหตุผล |
+| `user_reports.status` | `varchar(30) NOT NULL DEFAULT 'NEW'` | CHECK | NEW, INVESTIGATING, ACTION_TAKEN, CLOSED |
+| `user_reports.admin_notes` | `text NULL` | — | บันทึกภายในของ Admin |
+| `user_reports.admin_response` | `text NULL` | — | ข้อความตอบกลับผู้แจ้ง |
+| `user_reports.resolved_by_admin_user_id` | `uuid NULL` | FK → `users.id` | Admin ผู้ดำเนินการ |
+| `user_reports.resolved_at` | `timestamptz NULL` | — | เวลาที่ปิดเรื่อง |
+| `user_reports.created_at` | `timestamptz NOT NULL DEFAULT now()` | — | เวลาส่งเรื่อง |
+| `system_settings.key` | `varchar(50) NOT NULL` | PK | คีย์การตั้งค่า (เช่น platform_fee_percent, announcements) |
+| `system_settings.value` | `jsonb NOT NULL` | — | ค่าคอนฟิก |
+| `system_settings.description` | `varchar(255) NULL` | — | คำอธิบายการตั้งค่า |
+| `system_settings.updated_at` | `timestamptz NOT NULL DEFAULT now()` | — | เวลาอัปเดตล่าสุด |
+| `system_settings.updated_by_admin_user_id` | `uuid NULL` | FK → `users.id` | Admin ผู้อัปเดต |
+
 ### 9.5 การเปลี่ยน schema core จาก 1.0
 
 1. `PRICE_FIXTURES` แบบราคา 250/400 และ range คงที่ **ไม่เป็น source สำหรับหน้ารัน Demo**. ใช้ `SERVICE_CATALOG(category, service_format)` เป็น lookup workflow; static fixture คงได้เฉพาะ automated tests.
@@ -928,6 +1010,20 @@ erDiagram
  USERS ||--o{ ADMIN_AUDIT_LOGS : admin_action
  JOBS o|--o{ ADMIN_AUDIT_LOGS : audited_job
  DISPUTES o|--o{ ADMIN_AUDIT_LOGS : audited_dispute
+ USERS o|--o{ USERS : suspended_by
+ USERS o|--o{ PROVIDER_PROFILES : kyc_reviewer
+ USERS o|--o{ JOBS : hidden_by
+ JOBS ||--o{ JOB_WORK_PROOFS : job_proof
+ PROVIDER_PROFILES ||--o{ JOB_WORK_PROOFS : tech_proof
+ JOBS ||--o{ ESCROW_PAYMENTS : job_escrow
+ USERS ||--o{ ESCROW_PAYMENTS : customer_escrow
+ PROVIDER_PROFILES o|--o{ ESCROW_PAYMENTS : tech_escrow
+ USERS o|--o{ ESCROW_PAYMENTS : admin_payout
+ USERS ||--o{ USER_REPORTS : reporter
+ USERS o|--o{ USER_REPORTS : reported
+ JOBS o|--o{ USER_REPORTS : reported_job
+ USERS o|--o{ USER_REPORTS : admin_resolver
+ USERS o|--o{ SYSTEM_SETTINGS : admin_updater
 
  USERS {
  uuid id PK
@@ -1061,5 +1157,25 @@ erDiagram
  uuid actor_user_id FK
  uuid job_id FK
  uuid dispute_id FK
+ }
+ JOB_WORK_PROOFS {
+ uuid id PK
+ uuid job_id FK
+ uuid provider_id FK
+ }
+ ESCROW_PAYMENTS {
+ uuid id PK
+ uuid job_id FK
+ uuid customer_user_id FK
+ uuid provider_id FK
+ }
+ USER_REPORTS {
+ uuid id PK
+ uuid reporter_user_id FK
+ uuid reported_user_id FK
+ uuid job_id FK
+ }
+ SYSTEM_SETTINGS {
+ varchar key PK
  }
 ```

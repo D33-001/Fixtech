@@ -10,6 +10,14 @@ CREATE TABLE users (
     role varchar(30) NOT NULL CHECK (role IN ('CUSTOMER_GENERAL','CUSTOMER_BUSINESS','TECHNICIAN','ADMIN')),
     display_name varchar(100) NOT NULL,
     is_active boolean NOT NULL DEFAULT true,
+    id_card_number varchar(20),
+    bank_name varchar(100),
+    bank_account_number varchar(50),
+    bank_account_name varchar(150),
+    is_suspended boolean NOT NULL DEFAULT false,
+    suspension_reason varchar(500),
+    suspended_at timestamptz,
+    suspended_by_admin_id uuid REFERENCES users(id),
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -29,6 +37,18 @@ CREATE TABLE provider_profiles (
     priority integer NOT NULL DEFAULT 0 CHECK (priority >= 0),
     is_approved boolean NOT NULL DEFAULT false,
     is_available boolean NOT NULL DEFAULT false,
+    id_card_number varchar(20),
+    id_card_image_url varchar(500),
+    selfie_image_url varchar(500),
+    bank_name varchar(100),
+    bank_account_number varchar(50),
+    bank_account_name varchar(150),
+    skills_summary text,
+    kyc_status varchar(30) NOT NULL DEFAULT 'APPROVED' CHECK (kyc_status IN ('NOT_SUBMITTED','PENDING','APPROVED','REJECTED')),
+    kyc_rejection_reason varchar(500),
+    kyc_submitted_at timestamptz,
+    kyc_reviewed_at timestamptz,
+    kyc_reviewed_by_admin_id uuid REFERENCES users(id),
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -82,6 +102,20 @@ CREATE TABLE jobs (
     manufacturer varchar(100),
     model varchar(100),
     preferred_time_note varchar(200),
+    device_type varchar(30) CHECK (device_type IS NULL OR device_type IN ('DESKTOP','NOTEBOOK','OTHER')),
+    device_brand_or_model varchar(150),
+    power_fan_beep_status text,
+    screen_cable_status text,
+    pre_incident_event text,
+    battery_charging_status text,
+    chassis_screen_keyboard_status text,
+    damage_history text,
+    other_symptoms text,
+    is_hidden boolean NOT NULL DEFAULT false,
+    hidden_reason varchar(500),
+    hidden_at timestamptz,
+    hidden_by_admin_id uuid REFERENCES users(id),
+    ai_draft_checklist jsonb,
     analysis_version integer NOT NULL DEFAULT 0 CHECK (analysis_version >= 0),
     confirmed_analysis_version integer CHECK (confirmed_analysis_version > 0),
     analyzed_at timestamptz,
@@ -109,6 +143,9 @@ CREATE TABLE offers (
     provider_id uuid NOT NULL REFERENCES provider_profiles(id),
     scope_summary text NOT NULL,
     amount numeric(12,2) NOT NULL CHECK (amount > 0),
+    labor_fee numeric(12,2) CHECK (labor_fee IS NULL OR labor_fee >= 0),
+    transport_fee numeric(12,2) CHECK (transport_fee IS NULL OR transport_fee >= 0),
+    items_detail jsonb,
     status varchar(20) NOT NULL DEFAULT 'AVAILABLE' CHECK (status IN ('AVAILABLE','SELECTED','NOT_SELECTED')),
     created_at timestamptz NOT NULL DEFAULT now(),
     UNIQUE (job_id, provider_id)
@@ -350,7 +387,63 @@ CREATE TABLE admin_audit_logs (
     before_state jsonb,
     after_state jsonb NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
-    CHECK (job_id IS NOT NULL OR dispute_id IS NOT NULL)
+    -- CHECK (job_id IS NOT NULL OR dispute_id IS NOT NULL)
+);
+
+CREATE TABLE job_work_proofs (
+    id uuid PRIMARY KEY,
+    job_id uuid NOT NULL REFERENCES jobs(id),
+    provider_id uuid NOT NULL REFERENCES provider_profiles(id),
+    proof_type varchar(20) NOT NULL CHECK (proof_type IN ('BEFORE_WORK','AFTER_WORK')),
+    image_url varchar(500) NOT NULL,
+    original_filename varchar(255),
+    note text,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE escrow_payments (
+    id uuid PRIMARY KEY,
+    job_id uuid NOT NULL REFERENCES jobs(id),
+    customer_user_id uuid NOT NULL REFERENCES users(id),
+    provider_id uuid REFERENCES provider_profiles(id),
+    total_amount numeric(12,2) NOT NULL CHECK (total_amount > 0),
+    platform_fee_percent numeric(5,2) NOT NULL DEFAULT 10.00,
+    platform_fee numeric(12,2) NOT NULL DEFAULT 0.00,
+    net_provider_amount numeric(12,2) NOT NULL CHECK (net_provider_amount >= 0),
+    currency char(3) NOT NULL DEFAULT 'THB' CHECK (currency = 'THB'),
+    status varchar(30) NOT NULL DEFAULT 'HOLDING' CHECK (status IN (
+        'HOLDING','PENDING_PAYOUT','TRANSFERRED','DISPUTED_HOLD','REFUNDED_FULL','REFUNDED_PARTIAL')),
+    transfer_slip_url varchar(500),
+    transferred_at timestamptz,
+    transferred_by_admin_id uuid REFERENCES users(id),
+    refund_amount numeric(12,2),
+    refund_reason varchar(500),
+    refunded_at timestamptz,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE user_reports (
+    id uuid PRIMARY KEY,
+    reporter_user_id uuid NOT NULL REFERENCES users(id),
+    reported_user_id uuid REFERENCES users(id),
+    job_id uuid REFERENCES jobs(id),
+    report_type varchar(30) NOT NULL CHECK (report_type IN ('USER_REPORT','CONTACT_ADMIN')),
+    reason text NOT NULL CHECK (length(trim(reason)) > 0),
+    status varchar(30) NOT NULL DEFAULT 'NEW' CHECK (status IN ('NEW','INVESTIGATING','ACTION_TAKEN','CLOSED')),
+    admin_notes text,
+    admin_response text,
+    resolved_by_admin_user_id uuid REFERENCES users(id),
+    resolved_at timestamptz,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE system_settings (
+    key varchar(50) PRIMARY KEY,
+    value jsonb NOT NULL,
+    description varchar(255),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    updated_by_admin_user_id uuid REFERENCES users(id)
 );
 
 -- Constraints that express "at most one" in the ERD.
@@ -369,3 +462,6 @@ CREATE INDEX payment_simulations_job_created_idx ON payment_simulations(job_id, 
 CREATE INDEX warranty_claims_warranty_status_idx ON warranty_claims(warranty_id, status);
 CREATE INDEX disputes_job_status_created_idx ON disputes(job_id, status, created_at DESC);
 CREATE INDEX admin_audit_logs_dispute_created_idx ON admin_audit_logs(dispute_id, created_at DESC);
+CREATE INDEX job_work_proofs_job_proof_type_idx ON job_work_proofs(job_id, proof_type);
+CREATE INDEX escrow_payments_job_status_idx ON escrow_payments(job_id, status);
+CREATE INDEX user_reports_status_created_idx ON user_reports(status, created_at DESC);

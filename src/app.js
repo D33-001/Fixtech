@@ -12,7 +12,8 @@ export const DEMO_TABLES = Object.freeze([
   'job_attachments', 'ai_consents', 'ai_analysis_runs', 'ai_run_attachments',
   'pricing_rule_sets', 'price_estimates', 'job_messages', 'notifications', 'appointments',
   'payment_simulations', 'warranties', 'warranty_claims', 'reviews', 'disputes',
-  'dispute_evidence', 'admin_audit_logs'
+  'dispute_evidence', 'admin_audit_logs',
+  'job_work_proofs', 'escrow_payments', 'user_reports', 'system_settings'
 ]);
 
 export function createApp({ pool, env = process.env, aiProvider, marketPriceProvider, storageRoot } = {}) {

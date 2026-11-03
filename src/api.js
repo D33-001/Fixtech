@@ -4,6 +4,9 @@ import { basename, resolve } from 'node:path';
 import express from 'express';
 import { getSessionToken, hashPassword, issueSession, readSession, sessionCookie, verifyPassword } from './auth.js';
 import { CURATED_REFERENCE_MAX_AGE_DAYS, estimatePrice, referenceIsFresh } from './pricing.js';
+import { registerFastworkApi } from './routes/fastwork.js';
+import { registerAdminApi } from './routes/admin.js';
+import { registerAiScreeningApi } from './routes/ai-screening.js';
 
 const CUSTOMER_ROLES = new Set(['CUSTOMER_GENERAL', 'CUSTOMER_BUSINESS']);
 const JOB_TERMINAL = new Set(['COMPLETED', 'CANCELLED']);
@@ -181,8 +184,8 @@ export function registerApi(app, { pool, env, aiProvider, marketPriceProvider, s
   });
 
   app.use('/api', async (req, _res, next) => {
-    if (req.path === '/health/live' || req.path === '/health/ready' || req.path === '/demo/status' || req.path === '/catalog' || req.path === '/auth/login' || req.path === '/auth/register' || req.path === '/auth/logout') return next();
-    if (!/^\/(auth\/me|jobs(?:\/|$)|notifications(?:\/|$)|appointments\/|payment-simulations\/|admin\/)/.test(req.path)) return next();
+    if (req.path === '/health/live' || req.path === '/health/ready' || req.path === '/demo/status' || req.path === '/catalog' || req.path === '/auth/login' || req.path === '/auth/register' || req.path === '/auth/logout' || req.path === '/ai/screen-chat') return next();
+    if (!/^\/(auth\/me|jobs(?:\/|$)|notifications(?:\/|$)|appointments\/|payment-simulations\/|admin\/|users\/|technician\/|reports(?:\/|$)|ai\/)/.test(req.path)) return next();
     const userId = parseCookieToken(req, env);
     if (!userId) return next(new HttpError(401, 'UNAUTHENTICATED', 'กรุณาเข้าสู่ระบบ'));
     try {
@@ -249,26 +252,57 @@ export function registerApi(app, { pool, env, aiProvider, marketPriceProvider, s
 
   app.post('/api/jobs', async (req, res) => {
     requireRole(req.user, [...CUSTOMER_ROLES]);
-    const category = req.body?.category;
-    const serviceFormat = req.body?.serviceFormat;
-    const districtCode = text(req.body?.districtCode, 30, 'districtCode');
-    const symptom = text(req.body?.symptom, 1000, 'symptom');
+    const category = req.body?.category ?? 'HARDWARE';
+    const serviceFormat = req.body?.serviceFormat ?? 'ONSITE';
+    const districtCode = text(req.body?.districtCode ?? 'BANG_NA', 30, 'districtCode');
+    const symptom = text(req.body?.symptom ?? req.body?.symptomText ?? 'แจ้งซ่อมอุปกรณ์', 1000, 'symptom');
     if (![['SOFTWARE','ONLINE'], ['HARDWARE','ONSITE']].some(([c, f]) => c === category && f === serviceFormat)) fail(400, 'VALIDATION_ERROR', 'ประเภทงานและรูปแบบบริการไม่รองรับ');
-    const manufacturer = req.user.role === 'CUSTOMER_BUSINESS' && req.body?.manufacturer ? text(req.body.manufacturer, 100, 'manufacturer') : null;
-    const model = req.user.role === 'CUSTOMER_BUSINESS' && req.body?.model ? text(req.body.model, 100, 'model') : null;
-    const preferred = req.user.role === 'CUSTOMER_BUSINESS' && req.body?.preferredTimeNote ? text(req.body.preferredTimeNote, 200, 'preferredTimeNote') : null;
+    const manufacturer = req.body?.manufacturer ? text(req.body.manufacturer, 100, 'manufacturer') : null;
+    const model = req.body?.model ? text(req.body.model, 100, 'model') : null;
+    const preferred = req.body?.preferredTimeNote ? text(req.body.preferredTimeNote, 200, 'preferredTimeNote') : null;
+
+    const deviceType = req.body?.deviceType ? text(req.body.deviceType, 30, 'deviceType') : null;
+    const deviceBrandOrModel = req.body?.deviceBrandOrModel ? text(req.body.deviceBrandOrModel, 150, 'deviceBrandOrModel') : (manufacturer ? `${manufacturer} ${model ?? ''}`.trim() : null);
+    const powerFanBeepStatus = req.body?.powerFanBeepStatus ? text(req.body.powerFanBeepStatus, 1000, 'powerFanBeepStatus') : null;
+    const screenCableStatus = req.body?.screenCableStatus ? text(req.body.screenCableStatus, 1000, 'screenCableStatus') : null;
+    const preIncidentEvent = req.body?.preIncidentEvent ? text(req.body.preIncidentEvent, 1000, 'preIncidentEvent') : null;
+    const batteryChargingStatus = req.body?.batteryChargingStatus ? text(req.body.batteryChargingStatus, 1000, 'batteryChargingStatus') : null;
+    const chassisScreenKeyboardStatus = req.body?.chassisScreenKeyboardStatus ? text(req.body.chassisScreenKeyboardStatus, 1000, 'chassisScreenKeyboardStatus') : null;
+    const damageHistory = req.body?.damageHistory ? text(req.body.damageHistory, 1000, 'damageHistory') : null;
+    const otherSymptoms = req.body?.otherSymptoms ? text(req.body.otherSymptoms, 1000, 'otherSymptoms') : null;
+    const aiDraftChecklist = req.body?.aiDraftChecklist ? JSON.stringify(req.body.aiDraftChecklist) : null;
+    const aiSummary = req.body?.aiSummary ? text(req.body.aiSummary, 1000, 'aiSummary') : null;
+
+    const directPublish = Boolean(req.body?.directPublish);
+    const initialStatus = directPublish ? 'POSTED' : 'DRAFT';
+
     const id = randomUUID();
     await tx(pool, async (client) => {
       const district = await client.query('SELECT 1 FROM districts WHERE code=$1', [districtCode]);
       if (!district.rowCount) fail(400, 'VALIDATION_ERROR', 'เขตบริการไม่ถูกต้อง');
       await client.query(
-        `INSERT INTO jobs(id,customer_user_id,district_code,category,service_format,status,symptom_text,manufacturer,model,preferred_time_note)
-         VALUES($1,$2,$3,$4,$5,'DRAFT',$6,$7,$8,$9)`,
-        [id, req.user.id, districtCode, category, serviceFormat, symptom, manufacturer, model, preferred]
+        `INSERT INTO jobs(
+           id, customer_user_id, district_code, category, service_format, status, symptom_text,
+           manufacturer, model, preferred_time_note, device_type, device_brand_or_model,
+           power_fan_beep_status, screen_cable_status, pre_incident_event, battery_charging_status,
+           chassis_screen_keyboard_status, damage_history, other_symptoms, ai_draft_checklist, ai_summary,
+           posted_at
+         )
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+        [
+          id, req.user.id, districtCode, category, serviceFormat, initialStatus, symptom,
+          manufacturer, model, preferred, deviceType, deviceBrandOrModel,
+          powerFanBeepStatus, screenCableStatus, preIncidentEvent, batteryChargingStatus,
+          chassisScreenKeyboardStatus, damageHistory, otherSymptoms, aiDraftChecklist, aiSummary,
+          directPublish ? new Date() : null
+        ]
       );
-      await client.query('INSERT INTO job_status_events(id,job_id,actor_user_id,from_status,to_status) VALUES($1,$2,$3,NULL,\'DRAFT\')', [randomUUID(), id, req.user.id]);
+      await client.query("INSERT INTO job_status_events(id,job_id,actor_user_id,from_status,to_status) VALUES($1,$2,$3,NULL,'DRAFT')", [randomUUID(), id, req.user.id]);
+      if (directPublish) {
+        await client.query("INSERT INTO job_status_events(id,job_id,actor_user_id,from_status,to_status) VALUES($1,$2,$3,'DRAFT','POSTED')", [randomUUID(), id, req.user.id]);
+      }
     });
-    res.status(201).json({ data: { jobId: id, status: 'DRAFT' } });
+    res.status(201).json({ data: { jobId: id, status: initialStatus } });
   });
 
   app.get('/api/jobs', async (req, res) => {
@@ -985,6 +1019,10 @@ export function registerApi(app, { pool, env, aiProvider, marketPriceProvider, s
     res.json({ data: result });
   });
 
+  registerFastworkApi(app, { pool, env, storageRoot });
+  registerAdminApi(app, { pool, env });
+  registerAiScreeningApi(app, { aiProvider });
+
   app.use((err, req, res, next) => {
     if (res.headersSent) return next(err);
     const databaseUnavailable = ['28P01', 'ECONNREFUSED', 'ENOTFOUND', '3D000', 'ETIMEDOUT', '57P03'].includes(err.code);
@@ -992,7 +1030,7 @@ export function registerApi(app, { pool, env, aiProvider, marketPriceProvider, s
     const status = err instanceof HttpError ? err.status : safeIntegrationFailure ? err.status : databaseUnavailable ? 503 : (err.code === '23505' ? 409 : err.type === 'entity.too.large' ? 413 : 500);
     const code = err instanceof HttpError ? err.code : safeIntegrationFailure ? err.code : databaseUnavailable ? 'DATABASE_UNAVAILABLE' : (err.code === '23505' ? 'CONFLICT' : err.type === 'entity.too.large' ? 'PAYLOAD_TOO_LARGE' : 'INTERNAL_ERROR');
     const message = err instanceof HttpError ? err.message : safeIntegrationFailure ? err.message : databaseUnavailable ? 'เชื่อมต่อฐานข้อมูลไม่ได้ กรุณาตรวจ PostgreSQL และค่า DATABASE_URL ใน .env แล้วลองใหม่' : (err.code === '23505' ? 'รายการนี้มีอยู่แล้ว' : err.type === 'entity.too.large' ? 'ไฟล์มีขนาดเกิน 10 MiB' : 'เกิดข้อผิดพลาดภายในระบบ');
-    if (status >= 500) console.error('API request failed', { method: req.method, path: req.path, code: err.code });
+    if (status >= 500) console.error('API request failed', { method: req.method, path: req.path, code: err.code, message: err.message, stack: err.stack });
     res.status(status).json({ error: { code, message } });
   });
 }

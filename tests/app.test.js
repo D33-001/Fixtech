@@ -53,7 +53,7 @@ test('registration reports database failure safely when PostgreSQL rejects crede
 });
 
 test('readiness succeeds only after database query succeeds', async () => {
-  const app = createApp({ pool: { query: async () => ({ rows: [{ table_count: 26 }] }) } });
+  const app = createApp({ pool: { query: async () => ({ rows: [{ table_count: 30 }] }) } });
   await withServer(app, async (base) => {
     const response = await fetch(`${base}/api/health/ready`);
     assert.equal(response.status, 200);
@@ -74,8 +74,8 @@ test('readiness schema contract exactly matches all domain DDL tables', async ()
   const sqlPath = new URL('../docs/fixtech-demo-v1.8-drawdb.sql', import.meta.url);
   const sql = await readFile(fileURLToPath(sqlPath), 'utf8');
   const tables = [...sql.matchAll(/^CREATE TABLE ([a-z_]+)\s*\(/gim)].map((match) => match[1]);
-  assert.equal(DEMO_TABLES.length, 26);
-  assert.equal(new Set(DEMO_TABLES).size, 26);
+  assert.equal(DEMO_TABLES.length, 30);
+  assert.equal(new Set(DEMO_TABLES).size, 30);
   assert.deepEqual([...DEMO_TABLES].sort(), tables.sort());
 });
 

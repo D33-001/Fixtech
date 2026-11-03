@@ -22,8 +22,8 @@ class DemoV18SchemaTests(unittest.TestCase):
         cls.table_names = {match.group(1) for match in cls.tables}
 
     def test_expected_26_domain_tables(self):
-        self.assertEqual(26, len(self.tables))
-        self.assertEqual(26, len(self.table_names))
+        self.assertEqual(30, len(self.tables))
+        self.assertEqual(30, len(self.table_names))
 
     def test_all_foreign_keys_resolve_to_prior_tables(self):
         positions = {match.group(1): match.start() for match in self.tables}
