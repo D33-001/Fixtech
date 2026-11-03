@@ -1,8 +1,7 @@
-# Fixtech — ขอบเขตขยายจาก Demo ไปใช้งานจริง (ร่างข้อกำหนด)
+# Fixtech 1.0 — แผนขยายจาก Demo ไปใช้งานจริง
 
-**วันที่:** 2026-09-25  
-**สถานะ:** ข้อกำหนดที่ผู้ใช้ขอเพิ่ม; ยังไม่ผ่านการตรวจรับ implementation  
-**หลักการ:** ขั้น 1–7 ของ Demo v1.8 ยังเป็น baseline ที่ผ่านการตรวจรับตาม [validation](validation.md). เอกสารนี้กำหนดงานเพิ่มสำหรับรุ่นถัดไป โดยแยกสถานะและหลักฐานจาก Demo ให้ชัดเจน.
+**สถานะ:** ข้อกำหนดที่ผู้ใช้ขอเพิ่ม; ยังไม่ผ่านการตรวจรับ implementation
+**หลักการ:** ขั้น 1–7 ของ ระบบสาธิต 1.0 ยังเป็น baseline ที่ผ่านการตรวจรับตาม [validation](validation.md). เอกสารนี้กำหนดงานเพิ่มสำหรับรุ่นถัดไป โดยแยกสถานะและหลักฐานจาก Demo ให้ชัดเจน.
 
 **ผลทบทวนล่าสุด:** [ตรวจความพร้อม Production ขั้น 1–7](production-readiness-review.md) ยังไม่ผ่าน; ตัวเริ่มแอปปฏิเสธ `NODE_ENV=production` จนกว่าจะมี integration และการตรวจรับจริง.
 
@@ -14,7 +13,7 @@
 | PROD-PRICE | ราคาอ้างอิงตลาดที่อัปเดตจากแหล่งข้อมูลที่มีสิทธิ์ใช้งาน พร้อมเวลาเก็บและเวลาอัปเดตของแหล่ง, เขต, ประเภทงาน, ค่าแรง/อะไหล่/เดินทาง/ค่าธรรมเนียม และ version ของสูตร | มีสัญญาหรือสิทธิ์ใช้ API/data, mapping และ coverage สำหรับงานที่เปิดขาย, TTL และ stale rejection, reconcile ตัวเลขกับแหล่งจริง, แสดงช่วงราคา/สมมติฐานและราคาที่ช่างเสนอแยกกัน; หากข้อมูลไม่พอให้หยุดประเมิน | Demo ใช้ curated reference ไม่สด; ยังไม่มีแหล่งตลาดจริงที่ยืนยันสิทธิ์/coverage |
 | PROD-PAY | ชำระเงินจริงผ่านผู้ให้บริการรับชำระที่เหมาะกับไทย; บริษัทชำระผ่านแพลตฟอร์ม, ลูกค้าทั่วไปเลือกชำระตรงหรือผ่านระบบตามนโยบาย | ใช้ hosted checkout/tokenization โดยไม่เก็บข้อมูลบัตร; ยอดจาก server, webhook ตรวจลายเซ็น, idempotency, สถานะ pending/paid/failed/refunded, reconciliation, refund/chargeback, ledger/audit, sandbox → live test, สัญญาและรูปแบบการรับ/ส่งต่อเงินผ่านการทบทวนโดยผู้เชี่ยวชาญ | มีเพียง payment simulation; ไม่มีเงินจริงหรือการถือ/จ่ายเงินแทนช่าง |
 | PROD-KYC | ตรวจตัวตนช่าง/ทีมช่างและเอกสารวิชาชีพที่จำเป็นก่อนรับงาน | เลือกผู้ให้บริการหรือวิธีตรวจที่ตรวจสอบได้, consent/แจ้งวัตถุประสงค์, เก็บข้อมูลขั้นต่ำใน private storage, role restriction, review/reject/expire/reverify, audit, retention/deletion, ทดสอบการปลอมเอกสารและการเข้าถึงข้ามบัญชี | Demo ใช้ช่าง seed; ไม่มีการตรวจตัวตนจริง |
-| PROD-SEC | ตรวจความปลอดภัยระบบและแก้ผลตรวจทุกข้อระดับวิกฤต/สูงก่อนเปิดจริง | ระบุ threat model/data flow, ตรวจ dependency/SAST, ทดสอบ auth/authorization/CSRF/session/upload/SSRF/rate limit/secrets, ทดสอบเชิงรุกใน staging, backup/restore, logging/monitoring, บันทึก findings/เจ้าของงาน/หลักฐาน retest และผู้อนุมัติ release; ใช้ OWASP ASVS เป็นกรอบ | มีมาตรการบางส่วนใน Demo แต่ยังไม่มี audit ครบ; `npm audit` รอบ 2026-09-25 ติดต่อ advisory endpoint ไม่สำเร็จ จึงไม่มีผลสแกน dependency ที่ยืนยันได้ |
+| PROD-SEC | ตรวจความปลอดภัยระบบและแก้ผลตรวจทุกข้อระดับวิกฤต/สูงก่อนเปิดจริง | ระบุ threat model/data flow, ตรวจ dependency/SAST, ทดสอบ auth/authorization/CSRF/session/upload/SSRF/rate limit/secrets, ทดสอบเชิงรุกใน staging, backup/restore, logging/monitoring, บันทึก findings/เจ้าของงาน/หลักฐาน retest และผู้อนุมัติ release; ใช้ OWASP ASVS เป็นกรอบ | มีมาตรการบางส่วนใน Demo แต่ยังไม่มี audit ครบ; `npm audit` เคยติดต่อ advisory endpoint ไม่สำเร็จ จึงยังไม่มีผลสแกน dependency ที่ยืนยันได้ |
 | PROD-A11Y | ตรวจและปรับหน้าเว็บตาม WCAG 2.2 ระดับ AA ทุก flow/viewport ที่ใช้งาน | ระบุ browser/assistive technology baseline, ประเมินทุก page/state สำคัญ รวม modal, error, uploads, payment/KYC, keyboard, screen reader, zoom/reflow, contrast; บันทึก success criteria รายข้อและหลักฐาน retest ตาม WCAG-EM แล้วออกผลตรวจรับที่ระบุขอบเขต/วันที่ | Demo ตรวจ responsive, focus และบางคู่สีแล้ว; ยังไม่ได้ตรวจ WCAG ครบ |
 
 ## ลำดับออกแบบที่มีผลต่อ schema และ API
@@ -27,7 +26,7 @@
 
 ## แนวทางผู้ให้บริการและข้อมูลที่เหมาะกับ Fixtech
 
-ข้อเสนอเหล่านี้เป็น **รายชื่อสำหรับพิสูจน์ความเป็นไปได้** ณ วันที่จัดทำเอกสาร ยังไม่ได้สมัครบัญชีหรือยืนยันราคา/เงื่อนไขเชิงพาณิชย์.
+ข้อเสนอเหล่านี้เป็น **รายชื่อสำหรับพิสูจน์ความเป็นไปได้** เท่านั้น ทีมยังไม่ได้สมัครบัญชีหรือยืนยันราคาและเงื่อนไขเชิงพาณิชย์ จึงต้องตรวจข้อมูลกับผู้ให้บริการอีกครั้งก่อนตัดสินใจ
 
 | งาน | ทางเลือกแรกสำหรับการพิสูจน์ | เหตุผลและสิ่งที่ต้องตรวจเพิ่มเติม |
 |---|---|---|
@@ -47,7 +46,7 @@
 | C — หน้าเว็บและการเข้าถึง | checkout/KYC/price provenance, error/retry, keyboard/screen reader | คนที่ 1 รับ customer/provider UI; คนที่ 3 ตรวจร่วม | จบ flow sandbox ครบ 4 บทบาทและเริ่ม WCAG-EM report |
 | D — ตรวจปล่อย | reconciliation/refunds, security findings, WCAG 2.2 AA report, backup/restore และ monitoring | ทุกคนทดสอบข้าม slice; ผู้ประเมินภายนอกเมื่อมี | หลักฐาน retest และผู้รับผิดชอบลงนามก่อนเปิดเงินจริง |
 
-ให้ทำเป็นรุ่น/ฐานข้อมูลแยกจาก Demo v1.8; ระยะ A เป็นตัวกำหนดรายละเอียดของ B–D. ด้วยทีม 3 นักศึกษายังไม่ควรกำหนดวันเปิดเงินจริงก่อนทราบบัญชีผู้ให้บริการ สัญญา และผู้ตรวจอิสระ.
+ให้ทำเป็นรุ่น/ฐานข้อมูลแยกจาก ระบบสาธิต 1.0; ระยะ A เป็นตัวกำหนดรายละเอียดของ B–D. ด้วยทีม 3 นักศึกษายังไม่ควรกำหนดวันเปิดเงินจริงก่อนทราบบัญชีผู้ให้บริการ สัญญา และผู้ตรวจอิสระ.
 
 ## จุดเริ่มตรวจ Security และ Accessibility จากโค้ดปัจจุบัน
 

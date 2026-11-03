@@ -1,4 +1,4 @@
-# คู่มือดูแลและเดินระบบ — Fixtech Demo v1.8
+# คู่มือดูแลและเดินระบบ — Fixtech 1.0
 
 ## ฐานข้อมูล
 
@@ -10,7 +10,9 @@
 
 ## การเชื่อมต่อแอปและการทดสอบตั้งแต่ต้นจนจบ
 
-เมื่อสั่ง `npm start` แอปจะอ่าน `DATABASE_URL` และ `SESSION_SECRET` ส่วน `/api/health/ready` จะตรวจทั้งการเชื่อมต่อฐานข้อมูลและตารางที่จำเป็นทั้ง 26 ตาราง จากโฟลเดอร์หลักของโครงการ ให้คัดลอก `.env.example` เป็น `.env` แล้วกำหนด `DATABASE_URL` สำหรับ PostgreSQL ในเครื่อง, `SESSION_SECRET` ที่ไม่ซ้ำและยาวอย่างน้อย 32 ไบต์ และ `DEMO_SEED_PASSWORD` ที่ยาวอย่างน้อย 12 ตัวอักษร จากนั้นสั่ง `npm run setup:check -- --before-seed` เพื่อตรวจ secret, การยืนยันตัวตนกับ PostgreSQL และ schema โดยคำสั่งจะไม่แสดงข้อมูลลับออกหน้าจอ หากเป็นฐาน Demo ใหม่ที่ยังว่าง ให้กำหนด `DEMO_SEED_ALLOW_MUTATION=yes` เฉพาะตอนสั่ง seed เท่านั้น ระบบห้าม seed เมื่อ `NODE_ENV=production`, บังคับให้ระบุรหัสผ่าน และจะไม่พิมพ์รหัสผ่านออกมา หลัง seed ให้สั่ง `npm run setup:check` อีกครั้งเพื่อยืนยันว่ามีบัญชีทดสอบครบ 8 บัญชีและ 4 บทบาท เมื่อสั่ง `npm start` แล้วต้องเปิดหน้าต่างเว็บเซิร์ฟเวอร์ค้างไว้ จากนั้นเข้า `http://localhost:3000`.
+แอปอ่าน `DATABASE_URL` และ `SESSION_SECRET` ตอน server เริ่มทำงาน ส่วน `/api/health/ready` ตรวจทั้งการเชื่อมต่อฐานข้อมูลและตารางที่จำเป็นทั้ง 26 ตาราง จากโฟลเดอร์หลักของโครงการ ให้คัดลอก `.env.example` เป็น `.env` แล้วกำหนด `DATABASE_URL` สำหรับ PostgreSQL ในเครื่อง, `SESSION_SECRET` ที่ไม่ซ้ำและยาวอย่างน้อย 32 ไบต์ และ `DEMO_SEED_PASSWORD` ที่ยาวอย่างน้อย 12 ตัวอักษร จากนั้นสั่ง `npm run setup:check -- --before-seed` เพื่อตรวจ secret, การยืนยันตัวตนกับ PostgreSQL และ schema โดยไม่แสดงข้อมูลลับ หากเป็นฐาน Demo ใหม่ที่ยังว่าง ให้กำหนด `DEMO_SEED_ALLOW_MUTATION=yes` เฉพาะตอน seed ระบบห้าม seed เมื่อ `NODE_ENV=production`, บังคับรหัสผ่าน และไม่พิมพ์รหัสผ่าน หลัง seed ให้สั่ง `npm run setup:check` อีกครั้งเพื่อยืนยันบัญชีทดสอบ 8 บัญชีและ 4 บทบาท
+
+ระหว่างเขียนโค้ดให้ใช้ `npm run dev` แล้วเปิด `http://localhost:3001` คำสั่งนี้ใช้ nodemon restart Backend เมื่อ `src/` หรือ `.env` เปลี่ยน และใช้ BrowserSync reload หน้าเว็บเมื่อ `public/` หรือ `src/` เปลี่ยน ต้องเปิด Terminal ค้างไว้และหยุดด้วย `Ctrl+C` หากต้องการโหมดนิ่งสำหรับสาธิตหรือทดสอบการเปิดระบบ ให้ใช้ `npm start` และเปิด `http://localhost:3000` ซึ่งจะไม่ restart/reload อัตโนมัติ
 
 เมื่อต้องการทดสอบ workflow กับ PostgreSQL ครบทั้งกระบวนการ ให้กำหนด `FIXTECH_TEST_DATABASE_URL` ให้ชี้ไปยังฐานทดสอบที่ทิ้งได้และผ่านการ seed แล้ว กำหนด `DEMO_SEED_PASSWORD` ให้ตรงกับรหัส seed และยืนยันสิทธิ์แก้ข้อมูลด้วย `FIXTECH_TEST_DATABASE_ALLOW_MUTATION=yes` ก่อนสั่ง `npm test` การทดสอบ integration จะสร้างข้อมูลงาน ข้อเสนอ แชต การชำระเงิน รีวิว และข้อพิพาทสังเคราะห์ จึงห้ามชี้ไปยังฐานที่ใช้ร่วมกันหรือมีข้อมูลสำคัญ หากไม่กำหนด `FIXTECH_TEST_DATABASE_URL` ระบบ Node.js จะข้ามกรณีทดสอบ PostgreSQL ห้ามบันทึกตัวแปรยืนยันการแก้ข้อมูลทั้งสองตัวไว้ใน `.env`, Git หรือระบบ production และควรสั่ง `npm run check` กับ `python -m unittest tests/check_demo_v18_schema.py` เพิ่มด้วย
 
@@ -46,4 +48,4 @@ $env:FIXTECH_TEST_DATABASE_ALLOW_MUTATION = $null
 
 ## ระบบเดิม v4
 
-v4 database และวิธีสำรอง/กู้คืนเดิมถูกเก็บใน `archive/fixtech-v4/`. คำสั่ง/manifest ของ v4 ไม่ใช่ขั้นตอนของ Demo v1.8. ไม่มีการย้ายข้อมูลอัตโนมัติจาก schema v4.
+v4 database และวิธีสำรอง/กู้คืนเดิมถูกเก็บใน `archive/fixtech-v4/`. คำสั่ง/manifest ของ v4 ไม่ใช่ขั้นตอนของ ระบบสาธิต 1.0. ไม่มีการย้ายข้อมูลอัตโนมัติจาก schema v4.

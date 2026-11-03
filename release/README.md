@@ -1,6 +1,6 @@
-# ติดตั้ง Fixtech Demo v1.8
+# ติดตั้ง Fixtech 1.0
 
-ไฟล์ `FixTech-demo-v1.8.database.sql` สร้าง schema Demo v1.8 บน **ฐานข้อมูลว่างเท่านั้น** และทำงานใน transaction เดียว. ไฟล์นี้ไม่ใช่ migration จาก FixTech v4; อย่ารันกับฐาน v4 หรือฐานที่มีข้อมูลซึ่งต้องเก็บ.
+ไฟล์ `FixTech-demo-v1.8.database.sql` สร้าง schema ระบบสาธิต 1.0 บน **ฐานข้อมูลว่างเท่านั้น** และทำงานใน transaction เดียว. ไฟล์นี้ไม่ใช่ migration จาก FixTech v4; อย่ารันกับฐาน v4 หรือฐานที่มีข้อมูลซึ่งต้องเก็บ.
 
 Schema ไม่มีการสร้าง UUID ด้วย database extension; ให้แอปสร้าง UUID ตาม Data Model. ไม่ต้องติดตั้ง extensions.
 

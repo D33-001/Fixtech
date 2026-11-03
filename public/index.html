@@ -54,11 +54,24 @@
       </section>
 
       <section id="workspace" class="workspace" aria-labelledby="workspace-title">
-        <div class="section-heading"><p class="eyebrow">พื้นที่ทดลองระบบ</p><h2 id="workspace-title">เข้าสู่ระบบเพื่อจัดการงาน</h2><p>เลือกบทบาทสาธิตจากบัญชีใน README ข้อมูลทั้งหมดเป็นข้อมูลทดลอง</p></div>
+        <div class="section-heading"><p class="eyebrow">พื้นที่ทดลองระบบ</p><h2 id="workspace-title">เข้าสู่ระบบหรือสมัครบัญชีทดลอง</h2><p>สมัครเป็นลูกค้าทั่วไปหรือลูกค้าบริษัทได้เอง ส่วนบัญชีช่างและผู้ดูแลใช้ข้อมูลตัวอย่างใน README</p></div>
+        <div id="auth-switch" class="auth-switch" role="group" aria-label="เลือกวิธีเข้าใช้งาน">
+          <button id="show-login" class="button button-primary" type="button" aria-pressed="true">เข้าสู่ระบบ</button>
+          <button id="show-register" class="button button-secondary" type="button" aria-pressed="false">สมัครบัญชี</button>
+        </div>
         <form id="login-form" class="login-form">
           <label>อีเมล<input name="email" type="email" autocomplete="username" required placeholder="customer1@fixtech.demo"></label>
           <label>รหัสผ่าน<input name="password" type="password" autocomplete="current-password" required></label>
           <button class="button button-primary" type="submit">เข้าสู่ระบบ</button>
+        </form>
+        <form id="register-form" class="register-form" hidden>
+          <label>ประเภทบัญชี<select name="role" required><option value="CUSTOMER_GENERAL">ลูกค้าทั่วไป</option><option value="CUSTOMER_BUSINESS">ลูกค้าบริษัท</option></select></label>
+          <label>ชื่อที่แสดง<input name="displayName" maxlength="100" autocomplete="name" required placeholder="เช่น มายด์"></label>
+          <label>อีเมลของคุณ<input name="email" type="email" maxlength="254" autocomplete="email" required placeholder="เช่น mind@example.com"><small>อีเมลตัวอย่างเป็นเพียงคำแนะนำ ให้ใช้อีเมลที่ยังไม่เคยสมัครในฐานทดสอบนี้</small></label>
+          <label class="registration-company" hidden>ชื่อบริษัท<input name="companyName" maxlength="160" placeholder="เช่น บริษัทตัวอย่าง จำกัด"></label>
+          <label>ตั้งรหัสผ่าน<input name="password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required><small>อย่างน้อย 12 ตัวอักษร ไม่ใช้รหัสร่วมกับบัญชีอื่น</small></label>
+          <label>ยืนยันรหัสผ่าน<input name="confirmPassword" type="password" minlength="12" maxlength="128" autocomplete="new-password" required></label>
+          <button class="button button-primary" type="submit">สมัครและเข้าสู่ระบบ</button>
         </form>
         <p id="workspace-message" class="workspace-message" role="status"></p>
         <div id="dashboard" hidden>

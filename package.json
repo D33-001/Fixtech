@@ -8,6 +8,9 @@
   },
   "scripts": {
     "start": "node --env-file-if-exists=.env src/server.js",
+    "dev": "concurrently -k -n SERVER,BROWSER -c blue,green \"npm:dev:server\" \"npm:dev:browser\"",
+    "dev:server": "nodemon --watch src --watch .env --ext js,json --exec \"node --env-file-if-exists=.env src/server.js\"",
+    "dev:browser": "browser-sync start --proxy http://localhost:3000 --files \"public/**/*,src/**/*.js\" --port 3001 --no-open --no-ui --notify false --reload-delay 700",
     "setup:check": "node --env-file-if-exists=.env scripts/check-local-demo.mjs",
     "test": "node --test",
     "check": "node --check src/app.js && node --check src/server.js && node --check src/api.js && node --check src/pricing.js && node --check src/auth.js && node --check src/db/pool.js && node --check src/integrations/unavailable.js && node --check src/integrations/ollama.js && node --check src/integrations/demo-price-reference.js && node --check src/production/policies.js && node --check src/production/payment-events.js && node --check src/production/identity-service.js && node --check src/production/network-pricing.js && node --check src/production/opn-test-gateway.js && node --check public/app.js && node --check scripts/seed-demo.mjs && node --check scripts/check-local-demo.mjs && node --check tests/verify_postgres_schema.mjs && node --check tests/workflow.integration.test.js && node --check tests/ollama.integration.test.js && node --check tests/demo-price-reference.test.js && node --check tests/seed-safety.test.js && node --check tests/pricing.test.js && node --check tests/production-policies.test.js && node --check tests/production-payment-events.integration.test.js && node --check tests/production-identity-pricing.integration.test.js && node --check tests/opn-test-gateway.test.js",
@@ -18,5 +21,10 @@
     "express": "5.2.1",
     "helmet": "8.3.0",
     "pg": "8.23.0"
+  },
+  "devDependencies": {
+    "browser-sync": "^3.0.4",
+    "concurrently": "^10.0.5",
+    "nodemon": "^3.1.14"
   }
 }

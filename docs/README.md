@@ -1,20 +1,48 @@
-# สารบัญเอกสาร Fixtech
+# คู่มือเริ่มอ่านเอกสาร Fixtech 1.0
 
-เริ่มจากเอกสารขั้น 1–8 ตามลำดับ แล้วใช้เอกสารปฏิบัติงานเมื่อเปิดหรือทดสอบระบบ.
+หน้านี้เป็นจุดเริ่มสำหรับสมาชิกใหม่ที่ยังไม่รู้จักโครงการ ให้อ่านหัวข้อ “ภาพรวมในหนึ่งนาที” ก่อน แล้วอ่านขั้น 1–8 ตามลำดับ ไม่จำเป็นต้องจำทุกตารางหรือ API ในครั้งแรก
+
+## ภาพรวมในหนึ่งนาที
+
+Fixtech เป็นเว็บไซต์จับคู่ผู้ที่มีปัญหาคอมพิวเตอร์ อุปกรณ์อิเล็กทรอนิกส์ หรือซอฟต์แวร์ กับช่างที่เหมาะสม ลูกค้าทั่วไปได้รับการจับคู่อัตโนมัติ ส่วนลูกค้าบริษัทดูและเลือกข้อเสนอจากทีมช่าง ระบบช่วยรับอาการ วิเคราะห์เบื้องต้นด้วย AI ประเมินราคา นัดหมาย แชต ติดตามงาน รับประกัน รีวิว และเปิดข้อพิพาท
+
+ระบบที่อยู่ใน repository เป็น **ระบบสาธิตสำหรับรายวิชา** ใช้บัญชีและข้อมูลตัวอย่าง การชำระเงินเป็นการจำลอง ราคาไม่ใช่ราคาตลาดสด และ AI เป็นเพียงผู้ช่วย ห้ามนำไปใช้รับเงินจริงหรือข้อมูลลูกค้าจริง
+
+## ลำดับอ่านขั้น 1–8
 
 | ขั้น | เอกสาร |
 |---|---|
-| 1 | [Software Requirements](software-requirements-v1.md) |
-| 2 | [Use Cases](mvp-demo-design-v1.md) |
-| 3 | [Activity Diagrams](mvp-activity-diagrams-v1.md) |
-| 4 | [ERD และ Data Dictionary](mvp-data-model-v1.md) |
-| 5 | [API และสถานะงาน](api-and-job-state-v1.md) |
-| 6 | [Wireframes](wireframes-v1.md) |
-| 7 | [ราคาและการจับคู่](step-7-pricing-matching-decisions.md) |
-| 8 | [แผนทำร่วมกัน 3 คน](step-8-three-person-work-plan.md) |
+| 1 | [ข้อกำหนดซอฟต์แวร์](software-requirements-v1.md) | ระบบต้องทำอะไร อะไรอยู่นอกขอบเขต และเกณฑ์ผ่านคืออะไร |
+| 2 | [ผู้ใช้และกรณีใช้งาน](mvp-demo-design-v1.md) | ใครทำอะไรได้ และเส้นทางลูกค้าทั่วไปต่างจากบริษัทอย่างไร |
+| 3 | [ลำดับกิจกรรม](mvp-activity-diagrams-v1.md) | งานหนึ่งรายการเดินจากเริ่มแจ้งปัญหาจนปิดงานอย่างไร |
+| 4 | [ERD และพจนานุกรมข้อมูล](mvp-data-model-v1.md) | ข้อมูลอยู่ในตารางใด ตารางเชื่อมกันอย่างไร และมีกฎป้องกันข้อมูลผิดแบบใด |
+| 5 | [API และสถานะงาน](api-and-job-state-v1.md) | หน้าจอคุยกับ server อย่างไร ใครเรียกได้ และเปลี่ยนสถานะใดได้บ้าง |
+| 6 | [โครงหน้าจอ](wireframes-v1.md) | แต่ละบทบาทเห็นอะไร กดอะไร และควรแสดงข้อผิดพลาดอย่างไร |
+| 7 | [ราคาและการจับคู่](step-7-pricing-matching-decisions.md) | สูตรราคา ข้อมูลอ้างอิง เงื่อนไขคัดช่าง และข้อจำกัดของ Demo |
+| 8 | [แผนลงมือร่วมกันสามคน](step-8-three-person-work-plan.md) | วิธีเปิดระบบ พัฒนา ตรวจ และซ้อมนำเสนอโดยทำทีละส่วนพร้อมกัน |
 
-สำหรับเปิดระบบ: [Operations](operations.md), [Integration](integration.md), [Architecture](design.md). หลักฐานการตรวจ: [Validation](validation.md), [Readiness](step-1-7-readiness-review.md), [Optimization](step-1-7-optimization-review.md), [เทียบสไลด์รายวิชา](course-slide-alignment-review.md).
+## คำที่ควรรู้ก่อนเริ่ม
 
-แผนอนาคต: [Production expansion](production-expansion-v1.md), [Build specification](production-step-1-7-build-spec.md), [Readiness gaps](production-readiness-review.md), [Provider onboarding](provider-onboarding-questions.md). เอกสารกลุ่มนี้ไม่ใช่ข้อยืนยันว่า Demo เปิดใช้งาน Production ได้.
+- **Frontend หรือส่วนหน้า:** หน้าจอที่ผู้ใช้เห็นใน browser อยู่หลัก ๆ ใน `public/`
+- **Backend หรือส่วนหลัง:** server, กฎธุรกิจ และ API อยู่หลัก ๆ ใน `src/`
+- **API:** ช่องทางที่หน้าเว็บใช้ส่งคำขอไปยัง server เช่น สร้างงานหรือเลือกข้อเสนอ
+- **Database/schema:** ฐานข้อมูลและโครงสร้างตารางของ PostgreSQL
+- **DDL:** SQL สำหรับสร้างตาราง กฎ และ index
+- **ERD:** แผนภาพแสดงตารางและความสัมพันธ์
+- **Seed:** ข้อมูลบัญชีและงานตัวอย่างสำหรับ Demo เท่านั้น
+- **Workflow:** ลำดับการทำงานตั้งแต่เริ่มจนจบ
+- **State หรือสถานะ:** จุดปัจจุบันของงาน เช่น `DRAFT`, `POSTED` หรือ `COMPLETED`
+- **Guard:** เงื่อนไขที่ server ตรวจ ก่อนอนุญาตให้ทำคำสั่งหรือเปลี่ยนสถานะ
+- **Integration:** การเชื่อมระบบอื่น เช่น Ollama หรือบริการชำระเงิน
+- **Fallback:** ทางเลือกที่ปลอดภัยเมื่อบริการหลักใช้ไม่ได้ เช่น ให้ลูกค้าสรุปอาการเองเมื่อ AI ล่ม
+- **Production:** ระบบจริงที่ให้ผู้ใช้จริงและเงินจริง ซึ่งโครงการนี้ยังไม่ใช่
 
-ไฟล์ข้อมูล: [ERD SVG](fixtech-demo-v1.8-26-tables.svg), [drawDB SQL](fixtech-demo-v1.8-drawdb.sql). DDL ติดตั้งจริงอยู่ใน `release/` และโค้ดอยู่ใน `src/`/`public/`.
+## เอกสารสำหรับเปิดและตรวจระบบ
+
+สำหรับเปิดระบบใช้ [คู่มือเดินระบบ](operations.md), [ข้อตกลงการเชื่อมต่อ](integration.md) และ [สถาปัตยกรรม](design.md) หลักฐานการตรวจอยู่ใน [ผลตรวจระบบ](validation.md), [ความพร้อมขั้น 1–7](step-1-7-readiness-review.md), [ผลทบทวนความสอดคล้อง](step-1-7-optimization-review.md) และ [การเทียบสไลด์รายวิชา](course-slide-alignment-review.md)
+
+## แผนอนาคตที่ยังไม่ใช่ของ Demo
+
+อ่าน [แผนขยาย production](production-expansion-v1.md), [ข้อกำหนดการสร้างระบบจริง](production-step-1-7-build-spec.md), [ช่องว่างก่อนขึ้น production](production-readiness-review.md) และ [คำถามคัดเลือกผู้ให้บริการ](provider-onboarding-questions.md) เมื่อต้องการวางแผนรุ่นถัดไป เอกสารกลุ่มนี้ไม่ใช่สิ่งที่ระบบสาธิตทำเสร็จแล้ว
+
+ไฟล์ [ภาพ ERD](fixtech-demo-v1.8-26-tables.svg) และ [SQL สำหรับ drawDB](fixtech-demo-v1.8-drawdb.sql) ยังคงชื่อไฟล์ทางเทคนิคเดิมเพื่อไม่ให้ชุดทดสอบและลิงก์เสีย แต่เนื้อหาเอกสารทั้งหมดใช้รุ่น 1.0 DDL ที่ติดตั้งจริงอยู่ใน `release/` และโค้ดอยู่ใน `src/` กับ `public/`

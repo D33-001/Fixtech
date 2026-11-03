@@ -1,6 +1,5 @@
-# Fixtech Demo v1.8 — รีวิวและปรับขั้น 1–7
+# Fixtech 1.0 — รีวิวและปรับขั้น 1–7
 
-**วันที่:** 2026-09-25  
 **ขอบเขต:** ทบทวนเอกสารขั้น 1–7, code path ที่เกี่ยวข้อง และผลทดสอบบน PostgreSQL ชั่วคราว. การขยายไปใช้งานจริงยังเป็น [แผนรุ่นถัดไป](production-expansion-v1.md).
 
 ## ผลทบทวนรายขั้น
@@ -24,7 +23,7 @@
 
 ## จุดอ้างอิงปัจจุบัน
 
-SRS §13 และ [ขั้น 2 §10](mvp-demo-design-v1.md) → [ขั้น 3 §7](mvp-activity-diagrams-v1.md) → [ขั้น 4 §9/DDL](mvp-data-model-v1.md) → [ขั้น 5](api-and-job-state-v1.md) → [ขั้น 6](wireframes-v1.md) → [ขั้น 7](step-7-pricing-matching-decisions.md). เนื้อหา v1.7 ในเอกสารเหล่านี้เป็นประวัติ; หากขัดกันให้ยึดส่วน v1.8 และ implementation contract ขั้น 5. แผนเงินจริง/ราคาใหม่/KYC/security/WCAG ใน SRS §14 ยังไม่ใช่ฟีเจอร์ของ Demo.
+SRS §13 และ [ขั้น 2 §10](mvp-demo-design-v1.md) → [ขั้น 3 §7](mvp-activity-diagrams-v1.md) → [ขั้น 4 §9/DDL](mvp-data-model-v1.md) → [ขั้น 5](api-and-job-state-v1.md) → [ขั้น 6](wireframes-v1.md) → [ขั้น 7](step-7-pricing-matching-decisions.md). เนื้อหา 1.0 ในเอกสารเหล่านี้เป็นประวัติ; หากขัดกันให้ยึดส่วน 1.0 และ implementation contract ขั้น 5. แผนเงินจริง/ราคาใหม่/KYC/security/WCAG ใน SRS §14 ยังไม่ใช่ฟีเจอร์ของ Demo.
 
 ## ข้อจำกัดที่ต้องทราบ
 

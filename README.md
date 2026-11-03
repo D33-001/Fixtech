@@ -1,81 +1,177 @@
-# Fixtech Demo v1.8
+# Fixtech 1.0
 
-โครงตั้งต้นสำหรับทีม 3 คนพัฒนา Frontend และ Backend ต่อร่วมกันบน branch `Develop`. อ่าน [สารบัญขั้น 1–8](docs/README.md) และ [วิธีทำงานร่วมกัน](CONTRIBUTING.md). ไฟล์แชทอื่นและ archive รุ่นเก่าเก็บเฉพาะเครื่องเดิม ไม่รวมใน repository นี้.
+Fixtech เป็นเว็บไซต์สำหรับแจ้งปัญหาคอมพิวเตอร์ อุปกรณ์อิเล็กทรอนิกส์ และซอฟต์แวร์ แล้วจับคู่ลูกค้ากับช่างที่เหมาะสม ลูกค้าทั่วไปได้รับการจับคู่อัตโนมัติ ส่วนลูกค้าบริษัทเลือกจากข้อเสนอของทีมช่าง ระบบมี AI ช่วยวิเคราะห์อาการเบื้องต้น แสดงราคาอ้างอิง นัดหมาย แชต และติดตามผลหลังซ่อม
+
+โครงการนี้เป็น **ระบบสาธิตสำหรับทีม 3 คน** ใช้บัญชีและข้อมูลตัวอย่าง ราคาอ้างอิงไม่ใช่ราคาตลาดสด การชำระเงินเป็นการจำลอง และ AI อาจตอบผิดได้ ยังไม่ใช่ระบบที่เปิดให้ลูกค้าจริงใช้งาน
+
+## สารบัญ
+
+1. [โปรแกรมที่ต้องมี](#โปรแกรมที่ต้องมี)
+2. [เริ่มต้นใช้งาน](#เริ่มต้นใช้งาน)
+3. [คำสั่งที่ใช้บ่อย](#คำสั่งที่ใช้บ่อย)
+4. [ลองใช้หน้าเว็บทีละขั้น](#ลองใช้หน้าเว็บทีละขั้น)
+5. [ระบบทำงานอย่างไร](#ระบบทำงานอย่างไร)
+6. [โครงสร้างโครงการ](#โครงสร้างโครงการ)
+7. [ทำงานร่วมกันด้วย Branch และ Pull Request](#ทำงานร่วมกันด้วย-branch-และ-pull-request)
+8. [เอกสารขั้น 1–8](#เอกสารขั้น-18)
+9. [ขอบเขตของระบบสาธิต](#ขอบเขตของระบบสาธิต)
+
+## โปรแกรมที่ต้องมี
+
+| โปรแกรม | ใช้ทำอะไร | วิธีตรวจ |
+|---|---|---|
+| [Node.js](https://nodejs.org/) **22.9 ขึ้นไป** และ npm | เปิดเว็บ ติดตั้ง package และรัน test | `node --version` และ `npm --version` |
+| [Git](https://git-scm.com/) | ดึงโค้ด สร้าง Branch และบันทึกงาน | `git --version` |
+| [Visual Studio Code](https://code.visualstudio.com/) หรือ editor ที่ถนัด | แก้โค้ด SQL และเอกสาร | เปิดโฟลเดอร์ Fixtech ได้ |
+| [PostgreSQL](https://www.postgresql.org/) | เก็บข้อมูลผู้ใช้ งาน ข้อเสนอ และสถานะต่าง ๆ | เชื่อมต่อฐานข้อมูลในเครื่องได้ |
+| [pgAdmin](https://www.pgadmin.org/) หรือ [DBeaver](https://dbeaver.io/) | สร้างฐานว่าง รัน SQL และดูตาราง | เปิด Query Tool/SQL Editor ได้ |
+| เว็บเบราว์เซอร์ | เปิดและทดสอบเว็บ รวมถึงดูข้อผิดพลาดใน Developer Tools | เปิด `http://localhost:3001` ได้หลังรันเว็บ |
+| Python 3 | รันชุดตรวจโครงสร้างฐานข้อมูล | `python --version` |
+
+ถ้าจะทดลอง AI จริง ให้ติดตั้ง [Ollama](https://ollama.com/) และดาวน์โหลดโมเดลด้วย `ollama pull gemma3:4b` โมเดลใช้พื้นที่และหน่วยความจำของเครื่อง หากยังไม่พร้อม ให้กำหนด `AI_PROVIDER=disabled` ใน `.env` แล้วทดลองเส้นทางสรุปอาการด้วยตนเองก่อน
+
+`nodemon`, `BrowserSync` และ `concurrently` เป็นเครื่องมือพัฒนาที่ติดตั้งพร้อม `npm install` ไม่ต้องติดตั้งแยก เครื่องมืออย่าง [drawDB](https://www.drawdb.app/) สำหรับดู ERD หรือ Postman/Bruno สำหรับลอง API เป็นตัวเลือกเสริม โครงการนี้ใช้ HTML/CSS/JavaScript, Express และ `pg` จึงไม่ต้องติดตั้ง React, Prisma, Storybook, Vitest หรือ Docker เพื่อเริ่มงาน
+
+## เริ่มต้นใช้งาน
+
+ทำตามลำดับนี้บน Windows PowerShell จากโฟลเดอร์หลักของโครงการ ถ้ายังไม่มีโค้ดในเครื่อง ให้ clone repository แบบ Private ที่ทีมได้รับสิทธิ์ แล้วเปลี่ยนมาที่ Branch `Develop` ก่อน
+
+### 1. ติดตั้ง package และตั้งค่าเครื่อง
+
+```powershell
+npm install
+Copy-Item .env.example .env
+```
+
+เปิด `.env` แล้วเปลี่ยนค่าตัวอย่างอย่างน้อย 3 ค่า: `DATABASE_URL` ต้องเชื่อม PostgreSQL ในเครื่อง, `SESSION_SECRET` ต้องเป็นค่าที่สุ่มเองยาวอย่างน้อย 32 ไบต์ และ `DEMO_SEED_PASSWORD` ต้องยาวอย่างน้อย 12 ตัวอักษร ห้ามส่งไฟล์ `.env` หรือรหัสผ่านขึ้น Git หากจะใช้ AI ให้เปิด Ollama และคง `AI_PROVIDER=ollama`; หากยังไม่ใช้ให้เปลี่ยนเป็น `AI_PROVIDER=disabled`
+
+ถ้า Terminal แสดง `28P01` หรือหน้าเว็บบอกว่าเชื่อมต่อฐานข้อมูลไม่ได้ ให้แก้ **รหัสของ PostgreSQL** ไม่ใช่รหัสบัญชีลูกค้าบนเว็บ:
+
+1. เปิด pgAdmin แล้วลองเชื่อมต่อ PostgreSQL ด้วยชื่อผู้ใช้และรหัสที่ตั้งไว้ตอนติดตั้ง หากเข้าไม่ได้ ให้ตรวจหรือเปลี่ยนรหัส PostgreSQL ในเครื่องก่อน (อย่าส่งรหัสผ่านในแชตหรือ commit ลง Git)
+2. เปิด `.env` และแก้ `DATABASE_URL` ให้ตรงกับผู้ใช้ รหัส พอร์ต และชื่อฐานที่มีจริง เช่น `postgres://USERNAME:PASSWORD@localhost:5432/fixtech_demo_v18` ตัวอย่างนี้ **ไม่ใช่รหัสที่ใช้ได้จริง** ถ้ารหัสมี `@`, `:`, `/`, `#`, `%` ให้แปลงอักขระพิเศษเป็น URL encoding ก่อนใส่ใน URL
+3. รัน `npm run setup:check -- --before-seed` ใหม่ ต้องเห็นว่าเชื่อมต่อ PostgreSQL ผ่าน หากยังไม่ผ่าน ให้อ่านข้อความ `[ต้องแก้]` โดยไม่คัดลอก `.env` ไปให้ผู้อื่น จากนั้นเริ่ม `npm run dev` ใหม่
+
+การแก้ข้อความใน API ช่วยบอกสาเหตุเท่านั้น ไม่สามารถทำให้ PostgreSQL ยอมรับรหัสที่ไม่ตรงได้
+
+### 2. สร้างฐานข้อมูล Demo
+
+ใน pgAdmin หรือ DBeaver สร้างฐาน **ใหม่และว่าง** ชื่อ `fixtech_demo_v18` แล้วเปิด SQL Editor ของฐานนี้เพื่อรันไฟล์ `release/FixTech-demo-v1.8.database.sql` จะได้ schema 26 ตาราง ห้ามรัน SQL นี้ทับฐานที่มีข้อมูลสำคัญ วิธีตรวจ DDL แบบละเอียดอยู่ใน [คู่มือติดตั้งฐานข้อมูล](release/README.md)
+
+### 3. ตรวจและเพิ่มบัญชีตัวอย่าง
+
+```powershell
+npm run setup:check -- --before-seed
+$env:DEMO_SEED_ALLOW_MUTATION = 'yes'
+npm run seed
+Remove-Item Env:DEMO_SEED_ALLOW_MUTATION
+npm run setup:check
+```
+
+สั่ง `seed` เฉพาะฐาน Demo ที่ทิ้งได้และยังไม่ได้เติมข้อมูลตัวอย่าง คำสั่งนี้เพิ่มบัญชีสำหรับลูกค้าทั่วไป ลูกค้าบริษัท ช่าง และ Admin รหัสผ่านบัญชีตัวอย่างทุกบัญชีใช้ค่า `DEMO_SEED_PASSWORD` จาก `.env` และจะไม่พิมพ์รหัสผ่านออกหน้าจอ
+
+### 4. เปิดเว็บระหว่างพัฒนา
+
+```powershell
+npm run dev
+```
+
+เปิด **http://localhost:3001** และปล่อยหน้าต่าง Terminal ค้างไว้ `npm run dev` เปิด Backend ที่พอร์ต 3000 และ BrowserSync ที่พอร์ต 3001 แก้ไฟล์ใน `public/` แล้วหน้าเว็บ reload เอง; แก้ JavaScript ใน `src/` แล้ว Backend restart เอง จากนั้น browser reload กด `Ctrl+C` เพื่อหยุดทั้งคู่
+
+หากเปิดเว็บไม่ได้ ให้ดูข้อผิดพลาดใน Terminal และตรวจ `http://localhost:3001/api/health/ready` ก่อน การ restart ไม่ลบข้อมูลที่บันทึกใน PostgreSQL แต่ข้อความที่ยังไม่กดบันทึกบนหน้าเว็บอาจหายเมื่อ reload อย่าเปิด `npm start` พร้อม `npm run dev` เพราะจะแย่งพอร์ต 3000 กัน
+
+สำหรับการสาธิตแบบไม่ reload อัตโนมัติ ใช้ `npm start` และเปิด **http://localhost:3000** แทน อ่านวิธีแก้ปัญหาเพิ่มเติมใน [คู่มือเดินระบบ](docs/operations.md)
+
+## ลองใช้หน้าเว็บทีละขั้น
+
+เริ่มจากทำ [ขั้นตอนติดตั้ง](#เริ่มต้นใช้งาน) ให้จบก่อน เปิด `npm run dev` ค้างไว้ แล้วเข้า **http://localhost:3001** หากหน้าเว็บขึ้นแต่สมัครหรือเข้าสู่ระบบไม่ได้ ให้เปิด `http://localhost:3001/api/health/ready` ผลที่ถูกต้องคือ `{"status":"ready","database":"ok"}` ถ้าขึ้น `not_ready` ให้ตรวจ `.env`, PostgreSQL และ DDL ก่อน
+
+### ลองสมัครบัญชีของตนเอง
+
+1. กด **สมัครบัญชี** เลือก **ลูกค้าทั่วไป** หรือ **ลูกค้าบริษัท** หากเลือกบริษัทให้กรอกชื่อบริษัทด้วย
+2. กรอกชื่อที่แสดงและอีเมลที่ยังไม่เคยใช้ในฐานทดสอบ ตัวอย่างเช่น `student1@example.com` หรือ `myteam@example.com` เป็นเพียงรูปแบบแนะนำ ไม่มีอีเมลหรือรหัสที่ระบบเตรียมไว้ให้สำหรับบัญชีใหม่
+3. ตั้งรหัสผ่านเองอย่างน้อย 12 ตัวอักษร กรอกซ้ำให้ตรงกัน แล้วกด **สมัครและเข้าสู่ระบบ** ระบบจะพาเข้าหน้างานทันที รหัสผ่านจะถูกเก็บแบบ hash และไม่แสดงใน README
+4. กด **ออกจากระบบ** แล้วกรอกอีเมลกับรหัสผ่านที่ตั้งเองในแท็บ **เข้าสู่ระบบ** เพื่อทดสอบว่าเข้าใหม่ได้
+5. ลองกรอกรหัสผิด สมัครอีเมลเดิมซ้ำ หรือยืนยันรหัสไม่ตรง ระบบควรแจ้งข้อผิดพลาดโดยไม่สร้างบัญชีซ้ำ
+
+บัญชีช่างและ Admin สมัครเองจากหน้าเว็บไม่ได้ ใช้บัญชีตัวอย่างที่ได้จาก `npm run seed` เพื่อทดลองสิทธิ์ของสองบทบาทนี้ ตารางต่อไปนี้แสดงเฉพาะอีเมล **รหัสผ่านของบัญชี seed คือค่า `DEMO_SEED_PASSWORD` ที่แต่ละคนตั้งใน `.env` เอง**:
+
+| บทบาทสำหรับทดสอบ | อีเมลตัวอย่าง |
+|---|---|
+| ลูกค้าทั่วไป | `customer1@fixtech.demo` |
+| ลูกค้าบริษัท | `company@fixtech.demo` |
+| ช่างซอฟต์แวร์ | `tech.soft.a@fixtech.demo` |
+| ช่างฮาร์ดแวร์ | `tech.hardware.a@fixtech.demo` |
+| Admin | `admin@fixtech.demo` |
+
+### ลองเส้นทางงานซ่อม
+
+1. เข้าด้วยบัญชีลูกค้าทั่วไป เลือก **Software** และบริการ **ออนไลน์** กรอกอาการสังเคราะห์ เช่น “โปรแกรมเปิดแล้วปิดเอง” เลือกเขตจากรายการ แล้วสร้างฉบับร่าง
+2. ตอบคำถามเรื่องความยินยอม AI ตามที่ต้องการ ถ้า Ollama ยังไม่พร้อม ให้ใช้ทางเลือกสรุปอาการด้วยตนเอง ราคาอ้างอิงต้องมีแหล่งข้อมูลและคำเตือนว่าไม่ใช่ราคาสด หากข้อมูลราคาอ้างอิงหมดอายุ ระบบอาจหยุดที่ขั้นราคา ให้ตรวจคำเตือนแทนการฝืนเผยแพร่
+3. ยืนยันสรุปและราคา แล้วเผยแพร่งานเพื่อลองจับคู่ช่าง จากนั้นออกจากระบบและเข้าสู่บัญชีช่างซอฟต์แวร์เพื่อตรวจว่าเห็นงานที่ได้รับมอบหมาย
+4. ลองอีกงานด้วยบัญชีบริษัท เลือก **Hardware** และบริการ **เข้าพื้นที่** กรอกรายละเอียดบริษัท ดูช่วงราคา เลือกข้อเสนอหนึ่งรายการ แล้วลองนัดหมายและแชต
+5. ให้ลูกค้า ช่าง และ Admin ผลัดกันเข้าสู่ระบบเพื่อตรวจการส่งงาน การยืนยันงาน รับประกัน รีวิว ข้อพิพาท และการชำระเงิน **จำลอง** ข้อมูลต้องไม่ข้ามบัญชีหรือบทบาท
+
+เมื่อต้องการเริ่มทดสอบใหม่ ให้ใช้ฐาน Demo ที่ทิ้งได้อีกฐานหนึ่งหรืองานใหม่ ห้ามลบข้อมูลจากฐานที่เพื่อนกำลังใช้อยู่ และห้ามรัน seed ซ้ำเพียงเพราะลืมรหัสผ่าน เพราะ seed จะตั้งรหัสของบัญชีตัวอย่างใหม่ตาม `.env`
+
+## คำสั่งที่ใช้บ่อย
+
+| คำสั่ง | ทำอะไร |
+|---|---|
+| `npm run dev` | เปิดเว็บระหว่างพัฒนา พร้อม restart/reload อัตโนมัติ |
+| `npm start` | เปิดเว็บแบบนิ่งสำหรับสาธิต |
+| `npm run setup:check` | ตรวจ `.env`, การเชื่อมฐาน และบัญชีตัวอย่าง |
+| `npm run check` | ตรวจไวยากรณ์ JavaScript; ยังไม่ใช่ linter หรือ formatter |
+| `npm test` | รันชุดทดสอบ Node.js; กรณี PostgreSQL อาจถูกข้ามถ้าไม่ได้ตั้งฐานทดสอบแยก |
+| `python -m unittest tests/check_demo_v18_schema.py` | ตรวจว่า DDL, SQL สำหรับ drawDB และภาพ ERD สอดคล้องกัน |
+
+การทดสอบ workflow กับ PostgreSQL เต็มชุดต้องตั้ง `FIXTECH_TEST_DATABASE_URL` ให้ชี้ฐานทดสอบ **แยกและทิ้งได้** พร้อม `FIXTECH_TEST_DATABASE_ALLOW_MUTATION=yes` ชั่วคราว เพราะ test จะเขียนข้อมูลลงฐานนั้น ดูขั้นตอนใน [คู่มือเดินระบบ](docs/operations.md) ทุกครั้งที่รัน `npm test` ให้อ่านจำนวนกรณีที่ `skipped` ด้วย
+
+## ระบบทำงานอย่างไร
+
+```text
+ผู้ใช้ 4 บทบาท → หน้าเว็บ public/ → Express API ใน src/
+                                     ├─ PostgreSQL: งาน บัญชี สถานะ แชต และข้อมูลอื่น
+                                     ├─ Ollama ในเครื่อง: ช่วยวิเคราะห์อาการเมื่อผู้ใช้ยินยอม
+                                     ├─ ราคาอ้างอิง curated: ตัวอย่างราคาที่ทีมทบทวน
+                                     └─ private storage: ไฟล์ภาพที่ผ่านการตรวจสิทธิ์
+```
+
+ลูกค้าทั่วไปกรอกอาการ ดูผลวิเคราะห์และราคาก่อนเผยแพร่งาน จากนั้นระบบจับคู่ช่างตัวอย่างที่ผ่านเงื่อนไข ลูกค้าบริษัทกรอกรายละเอียดเพิ่ม ดูช่วงราคาและเลือกข้อเสนอ ช่างจัดการนัดหมาย แชต และส่งงาน ส่วน Admin ดูแลคิวรับประกันและข้อพิพาท ทั้งสองเส้นทางปิดงานด้วยการยืนยันผล ชำระเงินจำลอง และรีวิวได้ตามสิทธิ์
+
+## โครงสร้างโครงการ
 
 | โฟลเดอร์ | เนื้อหา |
 |---|---|
-| `public/` | Frontend: HTML, CSS, JavaScript |
-| `src/` | Backend: Express API, auth, DB pool, ราคา, integrations |
-| `scripts/` | เตรียมข้อมูลและตรวจการตั้งค่าเครื่อง |
-| `tests/` | Unit/integration/schema tests |
-| `release/` | DDL, SQL คำถามธุรกิจ, migration ทดลอง |
-| `docs/` | ข้อกำหนด แบบระบบ หลักฐานทดสอบ และเอกสารอ้างอิง |
+| `public/` | Frontend: HTML, CSS และ JavaScript ที่แสดงใน browser |
+| `src/` | Backend: Express API, สิทธิ์, ฐานข้อมูล, ราคา และการเชื่อม AI |
+| `release/` | SQL สำหรับติดตั้งฐานใหม่และ migration ทดลอง |
+| `scripts/` | คำสั่ง seed และตรวจการตั้งค่า |
+| `tests/` | ชุดทดสอบ API, กฎธุรกิจ และ schema |
+| `docs/` | ข้อกำหนด ผังระบบ หน้าจอ และผลตรวจ |
 
-โครงการนี้ปรับจากฐานข้อมูล FixTech v4 เดิมมาเป็น Demo สำหรับรายวิชา โดยเปลี่ยนขอบเขตและ schema ตามเอกสาร SRS v1.8. สำเนาเอกสาร/ฐานข้อมูล/ชุดทดสอบ v4 ก่อนปรับอยู่ใน `archive/fixtech-v4/` และห้ามนำมาปะปนกับ Demo ปัจจุบัน.
+ชื่อไฟล์ SQL/ERD บางไฟล์ยังมี `v1.8` เพราะโค้ดและชุดทดสอบอ้างชื่อนั้นอยู่ ชุดเอกสารที่ทีมใช้ทำงานเรียกว่า Fixtech 1.0
 
-## สถานะปัจจุบัน
+## ทำงานร่วมกันด้วย Branch และ Pull Request
 
-- เอกสารขั้น 1–6 กำหนด SRS, Use Case/API, Activity Diagram, Data Model/ERD, API/Job State และ wireframes ตามลำดับ.
-- `docs/fixtech-demo-v1.8-drawdb.sql` เป็น SQL สำหรับนำเข้า drawDB.
-- `release/FixTech-demo-v1.8.database.sql` เป็น DDL สำหรับติดตั้ง schema ใหม่บนฐานว่าง มี 26 ตารางและครอบด้วย transaction.
-- มี Node.js/Express app เชื่อม PostgreSQL พร้อมหน้าเว็บเข้าสู่ระบบและพื้นที่ทำงานแยกตามบทบาท; API ครอบคลุมร่างงาน/AI consent/ไฟล์/ประเมินราคา/matching หรือเลือกข้อเสนอ/แชต/แจ้งเตือน/นัดหมาย/ส่งงาน/รับประกัน/ชำระเงินจำลอง/รีวิว/ข้อพิพาท/Admin.
-- `npm test` รันชุด integration กับ PostgreSQL ได้เมื่อกำหนด `FIXTECH_TEST_DATABASE_URL` และยืนยัน `FIXTECH_TEST_DATABASE_ALLOW_MUTATION=yes` ชั่วคราว; ให้ชี้เฉพาะฐานทดสอบที่ทิ้งได้. Ollama/local AI และ curated price reference มี adapter แยกจาก test doubles.
-- ผลติดตั้ง DDL จริงและขอบเขตการทดสอบล่าสุดบันทึกใน [validation status](docs/validation.md).
-- Demo ปัจจุบันใช้ Ollama/Gemma 3 4B แบบ local (loopback) และ curated public price references แบบ non-live ตาม SRS §13.7; AI quality ยังไม่รับรอง. ปิด AI โดยปริยายเมื่อยังไม่ตั้งค่า และห้ามอ้างราคาว่าเป็น real-time.
-- UI ขั้น 6 ปรับ responsive layout และ dialog ของ workflow หลักแล้ว; consent ต้องมาก่อนอัปโหลดรูป. Browser walkthrough ครบ 4 บทบาทบนฐานทดสอบชั่วคราวตาม [validation report](docs/validation.md).
-- งานเพิ่มสำหรับรุ่นใช้งานจริง ได้แก่ ชำระเงินจริง ราคาอ้างอิงที่อัปเดต ตรวจตัวตนช่าง security audit และ WCAG 2.2 AA มี [โครงแผนแยก](docs/production-expansion-v1.md); ยังไม่ได้เปิดใช้งานใน Demo.
+Branch `main` ว่างตามการจัด repository ของทีม โค้ดอยู่ที่ `Develop` ให้เริ่มงานย่อยจาก `Develop` ใช้ชื่อที่บอกเรื่อง เช่น `feat/customer-intake`, `fix/appointment-conflict` หรือ `docs/readme` หนึ่ง Branch ต่อหนึ่งเรื่อง แล้วเปิด Pull Request กลับเข้า `Develop` ให้เพื่อนตรวจ ก่อนรวมงาน หากทีมยังไม่ได้ตั้ง branch protection ต้องตกลงกันว่าจะไม่ push ตรงเข้า `Develop`; README อย่างเดียวไม่ได้บังคับกฎนี้ใน GitHub
 
-## ขอบเขต Demo
+ก่อนเปิด Pull Request ให้รัน `npm run check` และ test ที่เกี่ยวข้อง ตรวจ `git diff` ว่าไม่มี `.env`, รหัสผ่าน หรือข้อมูลลูกค้าจริง จากนั้นเขียนว่าแก้อะไร ทำไม และทดสอบอย่างไร หากแก้หน้าจอให้แนบภาพ หากแก้ API, schema, สถานะ หรือสูตรราคา ให้ปรับเอกสารและ test ที่เกี่ยวข้องด้วย ผู้ตรวจควรทดลองทำความเข้าใจโค้ดและถามจุดที่สงสัย สมาชิกทั้งสามหมุนหน้าที่ผู้ลงมือ ผู้ตรวจ และผู้บันทึกตาม [วิธีทำงานร่วมกัน](CONTRIBUTING.md) กับ [แผนขั้น 8](docs/step-8-three-person-work-plan.md)
 
-เว็บภาษาไทยสำหรับลูกค้าทั่วไป, ลูกค้าบริษัท, ช่าง/ทีมช่างแบบ seed และ Admin; รองรับภาพ, AI วิเคราะห์พร้อม consent ผ่าน Ollama local, ตัวอย่างราคาอ้างอิงที่ทีมดูแล (ไม่ใช่ real-time market), matching, chat/in-app notification, นัดหมาย, payment simulation, warranty, review และ dispute. ไม่มี payment gateway/เงินจริง, SMS/email, วิดีโอ หรือ production deployment.
+## เอกสารขั้น 1–8
 
-## เอกสารหลัก
+เริ่มจาก [สารบัญเอกสารและคำศัพท์](docs/README.md) แล้วอ่านตามลำดับ:
 
-- [สไลด์ CE385 สัปดาห์ที่ 8 — RESTful API, Validation และ Prisma/PostgreSQL](docs/references/สไลด์_สัปดาห์ที่8_RESTfulAPIและValidationและPrismaPostgres_CE385.pdf) — เอกสารประกอบการเรียนที่ใช้เป็นข้อมูลอ้างอิง; การเพิ่มไฟล์นี้ไม่ได้เปลี่ยนเทคโนโลยีหรือขอบเขต Demo ปัจจุบัน
-- [ผลตรวจเทียบ Fixtech กับสไลด์ CE385/CE396 ที่ส่งมา](docs/course-slide-alignment-review.md)
-- [SQL คำถามธุรกิจ 5 ข้อสำหรับฝึกนำเสนอ CE396](release/03-business-queries.sql) — อ่านอย่างเดียว; ให้รันตรวจบนฐาน Demo ที่ seed แล้วก่อนอ้างผล
-- [SRS](docs/software-requirements-v1.md)
-- [Use Case และ API](docs/mvp-demo-design-v1.md)
-- [Activity Diagram](docs/mvp-activity-diagrams-v1.md)
-- [ER Diagram และ Data Dictionary](docs/mvp-data-model-v1.md)
-- [ขั้น 5 — API และกฎการเปลี่ยนสถานะงาน](docs/api-and-job-state-v1.md)
-- [ขั้น 6 — Wireframe หน้าจอสำคัญ](docs/wireframes-v1.md)
-- [ขั้น 7 — สูตรประเมินราคาและ Matching](docs/step-7-pricing-matching-decisions.md)
-- [ขั้น 8 — แผนทำงานร่วมกัน 3 คนทีละส่วน](docs/step-8-three-person-work-plan.md)
-- [ผลรีวิวและปรับประสิทธิภาพขั้น 1–7](docs/step-1-7-optimization-review.md)
-- [โครงแผนขยายไปใช้งานจริง](docs/production-expansion-v1.md)
-- [ผลตรวจความพร้อม Production ขั้น 1–7](docs/production-readiness-review.md)
-- [แบบสร้าง Production ขั้น 1–7](docs/production-step-1-7-build-spec.md)
-- [migration โครงข้อมูล Production](release/migrations/README.md)
-- [คำถามสำหรับเปิดบัญชีผู้ให้บริการ](docs/provider-onboarding-questions.md)
-- [ข้อกำหนด integration](docs/integration.md)
-- [การติดตั้ง/การทำงาน](docs/operations.md)
-- [แผนตรวจสอบ](docs/validation.md)
+1. [ข้อกำหนดซอฟต์แวร์](docs/software-requirements-v1.md) — ระบบต้องทำอะไร
+2. [ผู้ใช้และกรณีใช้งาน](docs/mvp-demo-design-v1.md) — ใครทำอะไรได้
+3. [แผนภาพกิจกรรม](docs/mvp-activity-diagrams-v1.md) — งานเดินไปอย่างไร
+4. [ERD และพจนานุกรมข้อมูล](docs/mvp-data-model-v1.md) — ข้อมูลอยู่ที่ใด
+5. [API และสถานะงาน](docs/api-and-job-state-v1.md) — หน้าเว็บสั่ง Backend อย่างไร
+6. [โครงหน้าจอ](docs/wireframes-v1.md) — ผู้ใช้เห็นและกดอะไร
+7. [ราคาและการจับคู่](docs/step-7-pricing-matching-decisions.md) — คำนวณราคาและเลือกช่างอย่างไร
+8. [แผนทำงานร่วมกัน 3 คน](docs/step-8-three-person-work-plan.md) — ลงมือและตรวจร่วมกันอย่างไร
 
-## การติดตั้งและพัฒนาในเครื่อง
+เอกสารเสริม: [ผลทดสอบและข้อจำกัด](docs/validation.md), [การเทียบสไลด์ CE385/CE396](docs/course-slide-alignment-review.md), [SQL คำถามธุรกิจ 5 ข้อ](release/03-business-queries.sql) และ [แผนขยายไปใช้จริง](docs/production-expansion-v1.md)
 
-1. ติดตั้ง dependency ด้วย `npm install` โดยใช้ Node.js 22.9 ขึ้นไป แล้วเปิด PowerShell ค้างอยู่ในโฟลเดอร์โครงการนี้
-2. สร้าง `.env` ด้วย `Copy-Item .env.example .env` แล้วเปิดไฟล์เพื่อเปลี่ยนค่าตัวอย่าง `DATABASE_URL` ต้องเชื่อมฐาน Demo ในเครื่องที่ทิ้งได้, `SESSION_SECRET` ต้องยาวอย่างน้อย 32 ไบต์ และ `DEMO_SEED_PASSWORD` อย่างน้อย 12 ตัวอักษร ห้ามส่ง secret เหล่านี้ในแชตหรือ commit `.env`
-3. ใน pgAdmin ให้สร้างฐาน **ใหม่และว่าง** ชื่อ `fixtech_demo_v18` เปิด Query Tool ของฐานนี้ แล้วรัน `release/FixTech-demo-v1.8.database.sql` บัญชีฐานข้อมูลของแอปต้องมีสิทธิ์อ่าน/เขียนตารางที่จำเป็น ห้ามติดตั้ง DDL นี้ทับ v4, production หรือฐานที่มีข้อมูลสำคัญ
-4. สั่ง `npm run setup:check -- --before-seed` เพื่อตรวจการยืนยันตัวตนกับฐานและตารางที่จำเป็น 26 ตารางโดยไม่แสดง credential ต้องแก้ทุกรายการที่รายงานก่อนทำต่อ
-5. หากฐานนี้ยังไม่เคย seed ให้สั่ง seed หนึ่งครั้ง:
+## ขอบเขตของระบบสาธิต
 
-   ```powershell
-   $env:DEMO_SEED_ALLOW_MUTATION = 'yes'
-   npm run seed
-   Remove-Item Env:DEMO_SEED_ALLOW_MUTATION
-   ```
-
-    seed จะใช้ `DEMO_SEED_PASSWORD` ในเครื่องกับบัญชี Demo ทุกบัญชีและไม่พิมพ์รหัสผ่านออกมา ห้าม seed ซ้ำ เว้นแต่ตั้งใจ reset ฐาน Demo ที่ทิ้งได้
-6. สั่ง `npm run setup:check`, `npm run check`, `npm test` และ `python -m unittest tests/check_demo_v18_schema.py` การทดสอบ workflow ของ PostgreSQL จะถูกข้ามถ้าไม่ได้กำหนด `FIXTECH_TEST_DATABASE_URL` ให้ชี้ไปยังฐานทดสอบที่ทิ้งได้อย่างชัดเจน
-7. สั่ง `npm start` และเปิดหน้าต่าง PowerShell ค้างไว้ จากนั้นเข้า `http://localhost:3000` ตรวจว่า `/api/health/ready` รายงาน `ready` ก่อน login รหัสผ่านของบัญชี Demo ทุกบัญชีเท่ากับ `DEMO_SEED_PASSWORD` ในเครื่อง
-
-ถ้า Ollama/Gemma 3 4B ใช้งานไม่ได้ ให้ตั้ง `AI_PROVIDER=disabled` ใน `.env` แอปยังเปิดได้แต่จะวิเคราะห์ด้วย AI ไม่ได้ หากต้องการ AI ในเครื่องให้ใช้ `AI_PROVIDER=ollama` และเปิด Ollama บน loopback ราคา curated ไม่ใช่ราคาตลาดสดและการชำระเงินเป็น simulation เท่านั้น ระบบนี้เป็น Demo นักศึกษาในเครื่อง ไม่ใช่ production deployment
-
-เมื่อต้องการตรวจ DDL กับ PostgreSQL จริงในเครื่อง ให้กำหนด `SCHEMA_TEST_DATABASE_URL` ใน `.env` ที่ Git ไม่ติดตาม โดยใช้บัญชี migration ที่สร้างฐานได้ แล้วทำตาม [คู่มือตรวจ schema บนฐานที่ทิ้งได้](release/README.md) ค่านี้แยกจาก `DATABASE_URL` ของแอป
-
-workflow ของ Demo และเส้นทาง Ollama ในเครื่องผ่านการทดสอบขณะรันจริงกับ PostgreSQL 18.6 บนฐานที่ทิ้งได้ และชุด workflow เต็มผ่านโดยไม่ข้าม แต่ผลนี้ไม่ได้หมายความว่าพร้อม production หรือรับรองความถูกต้อง/ความปลอดภัยของ AI, payment จริง, อีเมล/SMS หรือข้อกำหนด security ทั้งหมด ดู [สถานะการตรวจรับ](docs/validation.md)
-
-## ข้อมูลเดิม
-
-FixTech v4 เป็นระบบบริการหน้างานคนละขอบเขต ไม่ใช่ schema ของ Demo นี้. archive เก็บเฉพาะเครื่องเดิมและไม่รวมใน repository. การติดตั้ง v1.8 เป็น fresh schema เท่านั้น; ไม่มี migration/แปลงข้อมูลจริงจาก v4.
+ระบบมีบัญชีสังเคราะห์ 4 บทบาท ใช้ Ollama ในเครื่องและภาพหลังผู้ใช้ยินยอม ราคาเป็นตัวอย่างอ้างอิงที่ทีมคัดเลือก การชำระเงินเป็น simulation ยังไม่มี payment gateway, การโอนเงินจริง, SMS, อีเมล, วิดีโอ, การตรวจตัวตนช่างจริง หรือการรับรองความปลอดภัยและการเข้าถึงสำหรับ Production

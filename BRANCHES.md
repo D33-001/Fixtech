@@ -1,4 +1,4 @@
-# Fixtech
+# Fixtech 1.0 — แนวทางใช้ Branch
 
 โครงเริ่มต้นสำหรับนักศึกษา 3 คนพัฒนา Frontend และ Backend ร่วมกัน
 

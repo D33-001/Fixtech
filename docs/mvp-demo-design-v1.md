@@ -1,20 +1,18 @@
-# Fixtech MVP Demo — ขั้นตอนที่ 2: Use Cases, ERD และ API
+# Fixtech 1.0 — ขั้นตอนที่ 2: ผู้ใช้ กรณีใช้งาน และขอบเขต API
 
-> **ฉบับใช้งาน:** Actor/สิทธิ์, Use Case, state, data dictionary และ API ใน §§2–9 ที่ระบุ baseline v1.7 เป็นประวัติเท่านั้น ไม่ใช่พฤติกรรมของ Demo. ข้อกำหนดปัจจุบันอยู่ใน SRS §§1.4/13, decision §13.7 (v1.8.4) และเอกสารนี้ §10; หากขัดกันให้ยึด decision ล่าสุด. สำหรับขั้น 5 ใช้ Ollama local และ curated price references แบบ non-live; diagram/ข้อความที่เรียก live price เป็นข้อกำหนดก่อนการตัดสิน v1.8.4.
+> **วิธีอ่านสำหรับผู้เริ่มต้น:** อ่าน §1–3 เพื่อรู้จักผู้ใช้และเส้นทางหลัก จากนั้นใช้ §10 เป็นรายละเอียดฉบับใช้งาน หากข้อความส่วนต้นต่างจาก §10 ให้ยึด §10 ระบบใช้ Ollama ในเครื่องและราคาอ้างอิงแบบไม่ใช่ข้อมูลสด
 
-> **ขอบเขตปัจจุบัน:** §10 เป็นข้อกำหนด Use Case/API/state/traceability สำหรับ Demo v1.8. §§1–9 เป็น snapshot ทางประวัติศาสตร์ที่คงไว้เพื่อ trace การตัดสินใจ; ห้ามนำข้อความที่ขัดกันมาใช้แทน §10.
+> **Implementation link:** route/payload และ transition ที่ implement จริงใน API 1.0 ให้ยึด [ขั้น 5 — API และกฎการเปลี่ยนสถานะงาน](api-and-job-state-v1.md); จุดที่แตกต่างจาก design เดิมรวบรวมไว้ใน §8 ของขั้น 5.
 
-> **Implementation link:** route/payload และ transition ที่ implement จริงใน API v1.8 ให้ยึด [ขั้น 5 — API และกฎการเปลี่ยนสถานะงาน](api-and-job-state-v1.md); จุดที่แตกต่างจาก design เดิมรวบรวมไว้ใน §8 ของขั้น 5.
-
-**อ้างอิง baseline:** [SRS v1.8 Expanded Demo](software-requirements-v1.md)<br>
-**สถานะ:** แบบออกแบบสำหรับ expanded student demo เท่านั้น; ยังไม่ใช่ production design<br>
+**อ้างอิง:** [ข้อกำหนดซอฟต์แวร์ Fixtech 1.0](software-requirements-v1.md)<br>
+**สถานะ:** แบบออกแบบสำหรับระบบสาธิตในรายวิชา ยังไม่ใช่ production<br>
 **เทคโนโลยีเป้าหมาย:** HTML/CSS/JavaScript, Node.js/Express, PostgreSQL
 
 ## 1. หลักการและขอบเขต
 
-ส่วน §§1–9 เป็น baseline v1.7 เชิงประวัติ; ข้อกำหนด Demo ปัจจุบันใช้ v1.8 ใน §10 ประกอบกับ SRS §13. ให้ถือ §10 แทนข้อความที่ขัดกันใน baseline.
+ส่วน §§1–9 เป็น baseline 1.0 เชิงประวัติ; ข้อกำหนด Demo ปัจจุบันใช้ 1.0 ใน §10 ประกอบกับ SRS §13. ให้ถือ §10 แทนข้อความที่ขัดกันใน baseline.
 
-ขอบเขต baseline v1.7 ในส่วนนี้ใช้บัญชีและข้อมูล seed, AI mock, ราคา/ข้อเสนอ fixture, เขตตัวอย่าง 3 เขต และวงจรงานจำลองจนลูกค้ายืนยันรับ. ข้อความ “ไม่มี” ในย่อหน้านี้เป็นประวัติของ v1.7 เท่านั้น; Demo ปัจจุบันให้ยึดรายการขยายใน §10.
+ขอบเขต baseline 1.0 ในส่วนนี้ใช้บัญชีและข้อมูล seed, AI mock, ราคา/ข้อเสนอ fixture, เขตตัวอย่าง 3 เขต และวงจรงานจำลองจนลูกค้ายืนยันรับ. ข้อความ “ไม่มี” ในย่อหน้านี้เป็นประวัติของ 1.0 เท่านั้น; Demo ปัจจุบันให้ยึดรายการขยายใน §10.
 
 กฎข้อมูลตัวอย่างที่ยึดร่วมกัน:
 
@@ -87,9 +85,9 @@
 
 Admin เรียกดูรายการและรายละเอียดงานเพื่อสาธิตได้แบบ read-only. API ปฏิเสธคำขอแก้ไขราคา, อนุมัติ provider หรือเปลี่ยนสถานะในบทบาท Admin.
 
-## 4. State model (historical baseline v1.7 — ห้ามใช้แทน §10.3)
+## 4. State model (historical baseline 1.0 — ห้ามใช้แทน §10.3)
 
-> ตาราง transition ด้านล่างเป็นประวัติ v1.7; state model ปัจจุบันของ Demo v1.8 อยู่ใน §10.3 และ Activity Diagram ขั้น 3 §7.3.
+> ตาราง transition ด้านล่างเป็นประวัติ 1.0; state model ปัจจุบันของ ระบบสาธิต 1.0 อยู่ใน §10.3 และ Activity Diagram ขั้น 3 §7.3.
 
 | สถานะ | ความหมาย |
 |---|---|
@@ -122,104 +120,104 @@ Transitions ที่อนุญาต:
 
 ทุก transition ตรวจสถานะเดิมและ role ที่ server. การเลือก offer ใช้ DB transaction/row lock หรือวิธีเทียบเท่า เพื่อให้มี offer ที่ SELECTED ได้ไม่เกินหนึ่งรายการต่อ Job. สถานะที่ไม่อยู่ในตารางต้องถูกปฏิเสธ.
 
-## 5. ERD ระดับแนวคิด (historical baseline v1.7 — ให้ใช้ Data Model ขั้น 4 §9)
+## 5. ERD ระดับแนวคิด (historical baseline 1.0 — ให้ใช้ Data Model ขั้น 4 §9)
 
 ```mermaid
 erDiagram
-    USERS ||--o| COMPANY_PROFILES : has
-    USERS ||--o| PROVIDER_PROFILES : has
-    USERS ||--o{ JOBS : owns
-    USERS ||--o{ JOB_STATUS_EVENTS : performs
-    DISTRICTS ||--o{ JOBS : requested_in
-    PROVIDER_PROFILES ||--o{ PROVIDER_SERVICES : supports
-    PROVIDER_PROFILES ||--o{ PROVIDER_DISTRICTS : serves
-    DISTRICTS ||--o{ PROVIDER_DISTRICTS : included
-    PROVIDER_PROFILES ||--o{ JOBS : assigned_to
-    JOBS ||--o{ OFFERS : receives
-    PROVIDER_PROFILES ||--o{ OFFERS : submits
-    JOBS ||--o{ JOB_STATUS_EVENTS : records
-    PRICE_FIXTURES ||--o{ JOBS : prices
+ USERS ||--o| COMPANY_PROFILES : has
+ USERS ||--o| PROVIDER_PROFILES : has
+ USERS ||--o{ JOBS : owns
+ USERS ||--o{ JOB_STATUS_EVENTS : performs
+ DISTRICTS ||--o{ JOBS : requested_in
+ PROVIDER_PROFILES ||--o{ PROVIDER_SERVICES : supports
+ PROVIDER_PROFILES ||--o{ PROVIDER_DISTRICTS : serves
+ DISTRICTS ||--o{ PROVIDER_DISTRICTS : included
+ PROVIDER_PROFILES ||--o{ JOBS : assigned_to
+ JOBS ||--o{ OFFERS : receives
+ PROVIDER_PROFILES ||--o{ OFFERS : submits
+ JOBS ||--o{ JOB_STATUS_EVENTS : records
+ PRICE_FIXTURES ||--o{ JOBS : prices
 
-    USERS {
-      uuid id PK
-      string email UK
-      string password_hash
-      string role
-      string display_name
-      boolean is_active
-    }
-    COMPANY_PROFILES {
-      uuid user_id PK,FK
-      string company_name
-      string contact_name
-    }
-    PROVIDER_PROFILES {
-      uuid id PK
-      uuid user_id FK,UK
-      string display_name
-      int priority
-      boolean is_approved
-      boolean is_available
-    }
-    DISTRICTS {
-      string code PK
-      string name UK
-    }
-    PROVIDER_SERVICES {
-      uuid provider_id PK,FK
-      string category PK
-      string service_format PK
-    }
-    PROVIDER_DISTRICTS {
-      uuid provider_id PK,FK
-      string district_code PK,FK
-    }
-    PRICE_FIXTURES {
-      uuid id PK
-      string category
-      string service_format
-      int b2c_price
-      int b2b_min
-      int b2b_max
-    }
-    JOBS {
-      uuid id PK
-      uuid customer_user_id FK
-      uuid assigned_provider_id FK
-      uuid price_fixture_id FK
-      string district_code FK
-      string status
-      string symptom_text
-      string ai_summary
-      string manufacturer
-      string model
-      string preferred_time_note
-      int analysis_version
-      int confirmed_analysis_version
-      datetime analyzed_at
-      datetime summary_confirmed_at
-      int price_min_snapshot
-      int price_max_snapshot
-      string cancel_reason
-      string completion_note
-      datetime created_at
-    }
-    OFFERS {
-      uuid id PK
-      uuid job_id FK
-      uuid provider_id FK
-      string scope_summary
-      int amount
-      string status
-    }
-    JOB_STATUS_EVENTS {
-      uuid id PK
-      uuid job_id FK
-      uuid actor_user_id FK
-      string from_status
-      string to_status
-      datetime created_at
-    }
+ USERS {
+ uuid id PK
+ string email UK
+ string password_hash
+ string role
+ string display_name
+ boolean is_active
+ }
+ COMPANY_PROFILES {
+ uuid user_id PK,FK
+ string company_name
+ string contact_name
+ }
+ PROVIDER_PROFILES {
+ uuid id PK
+ uuid user_id FK,UK
+ string display_name
+ int priority
+ boolean is_approved
+ boolean is_available
+ }
+ DISTRICTS {
+ string code PK
+ string name UK
+ }
+ PROVIDER_SERVICES {
+ uuid provider_id PK,FK
+ string category PK
+ string service_format PK
+ }
+ PROVIDER_DISTRICTS {
+ uuid provider_id PK,FK
+ string district_code PK,FK
+ }
+ PRICE_FIXTURES {
+ uuid id PK
+ string category
+ string service_format
+ int b2c_price
+ int b2b_min
+ int b2b_max
+ }
+ JOBS {
+ uuid id PK
+ uuid customer_user_id FK
+ uuid assigned_provider_id FK
+ uuid price_fixture_id FK
+ string district_code FK
+ string status
+ string symptom_text
+ string ai_summary
+ string manufacturer
+ string model
+ string preferred_time_note
+ int analysis_version
+ int confirmed_analysis_version
+ datetime analyzed_at
+ datetime summary_confirmed_at
+ int price_min_snapshot
+ int price_max_snapshot
+ string cancel_reason
+ string completion_note
+ datetime created_at
+ }
+ OFFERS {
+ uuid id PK
+ uuid job_id FK
+ uuid provider_id FK
+ string scope_summary
+ int amount
+ string status
+ }
+ JOB_STATUS_EVENTS {
+ uuid id PK
+ uuid job_id FK
+ uuid actor_user_id FK
+ string from_status
+ string to_status
+ datetime created_at
+ }
 ```
 
 ## 6. Data dictionary และข้อจำกัด
@@ -243,9 +241,9 @@ erDiagram
 
 ทุกเวลาใช้ `timestamptz` และ server เป็นผู้กำหนด. ใช้ integer THB สำหรับ fixture นี้; หากขยายสู่เงินจริง/ภาษีต้องออกแบบชนิดเงินใหม่ก่อน ไม่อนุมานจากเดโม.
 
-## 7. API contract (REST `/api/v1`, historical baseline v1.7 — ห้ามใช้แทน API addendum §10.2)
+## 7. API contract (REST `/api/v1`, historical baseline 1.0 — ห้ามใช้แทน API addendum §10.2)
 
-> Endpoint ตารางนี้เป็น baseline ก่อนขยาย; API เพิ่มเติม/ข้อกำหนดปัจจุบันอยู่ใน §10.2. UC-04/UC-05 และ route เริ่มงานในตารางนี้ปรับให้ตรงกับ v1.8 แล้ว.
+> Endpoint ตารางนี้เป็น baseline ก่อนขยาย; API เพิ่มเติม/ข้อกำหนดปัจจุบันอยู่ใน §10.2. UC-04/UC-05 และ route เริ่มงานในตารางนี้ปรับให้ตรงกับ 1.0 แล้ว.
 
 ### 7.1 รูปแบบทั่วไป
 
@@ -271,7 +269,7 @@ erDiagram
 | `GET /jobs/{jobId}` | เจ้าของ/assigned provider/Admin | ไม่มี | 200; อื่นคืน 404 |
 | `GET /jobs/{jobId}/offers` | เจ้าของบริษัท | ไม่มี | 200; คืน `id`, `providerLabel` (ชื่อสาธิต), `scopeSummary`, `amount`, `currency`, `isDemo`; ไม่คืนข้อมูลติดต่อ/โปรไฟล์ส่วนตัว |
 | `POST /jobs/{jobId}/offers/{offerId}/select` | เจ้าของบริษัท, WAITING_FOR_SELECTION | ไม่มี | 200; เลือกได้ offer ของ Job เดียวกัน; transaction ทำให้มีผู้ชนะหนึ่งราย; conflict คืน 409 |
-| `POST /jobs/{jobId}/start` | assigned provider; SCHEDULED (นัดสองฝ่ายยืนยันและตกลงราคาแล้ว) | ไม่มี | 200; IN_PROGRESS; สถานะ MATCHED/ASSIGNED ใช้เฉพาะ baseline v1.7 |
+| `POST /jobs/{jobId}/start` | assigned provider; SCHEDULED (นัดสองฝ่ายยืนยันและตกลงราคาแล้ว) | ไม่มี | 200; IN_PROGRESS; สถานะ MATCHED/ASSIGNED ใช้เฉพาะ baseline 1.0 |
 | `POST /jobs/{jobId}/submit-completion` | assigned provider; IN_PROGRESS | `completionNote` | 200; WAITING_FOR_CUSTOMER_CONFIRMATION |
 | `POST /jobs/{jobId}/confirm-completion` | เจ้าของ Job; WAITING_FOR_CUSTOMER_CONFIRMATION | ไม่มี | 200; COMPLETED |
 | `POST /jobs/{jobId}/cancel` | เจ้าของ Job; ก่อน IN_PROGRESS | `reason` | 200; CANCELLED; หลังเริ่มงานคืน 409 |
@@ -283,10 +281,10 @@ erDiagram
 
 ```json
 {
-  "category": "SOFTWARE",
-  "serviceFormat": "ONLINE",
-  "symptomText": "โปรแกรมเปิดแล้วปิดทันที",
-  "districtCode": "BANG_NA"
+ "category": "SOFTWARE",
+ "serviceFormat": "ONLINE",
+ "symptomText": "โปรแกรมเปิดแล้วปิดทันที",
+ "districtCode": "BANG_NA"
 }
 ```
 
@@ -294,14 +292,14 @@ erDiagram
 
 ```json
 {
-  "data": {
-    "jobId": "<uuid>",
-    "status": "DRAFT",
-    "analysisVersion": 1,
-    "category": "SOFTWARE",
-    "aiSummary": "โปรแกรม Windows เปิดแล้วปิดทันที; ยังไม่ทราบข้อความ error",
-    "price": { "min": 250, "max": 250, "currency": "THB", "isDemo": true }
-  }
+ "data": {
+ "jobId": "<uuid>",
+ "status": "DRAFT",
+ "analysisVersion": 1,
+ "category": "SOFTWARE",
+ "aiSummary": "โปรแกรม Windows เปิดแล้วปิดทันที; ยังไม่ทราบข้อความ error",
+ "price": { "min": 250, "max": 250, "currency": "THB", "isDemo": true }
+ }
 }
 ```
 
@@ -311,12 +309,12 @@ erDiagram
 
 ```json
 {
-  "data": {
-    "jobId": "<uuid>",
-    "status": "MATCHED",
-    "price": { "min": 250, "max": 250, "currency": "THB", "isDemo": true },
-    "provider": { "id": "<uuid>", "label": "ช่างตัวอย่าง A", "isDemo": true }
-  }
+ "data": {
+ "jobId": "<uuid>",
+ "status": "MATCHED",
+ "price": { "min": 250, "max": 250, "currency": "THB", "isDemo": true },
+ "provider": { "id": "<uuid>", "label": "ช่างตัวอย่าง A", "isDemo": true }
+ }
 }
 ```
 
@@ -342,7 +340,7 @@ erDiagram
 
 ## 8. การติดตามความเชื่อมโยง: Must → กรณีใช้งาน / ข้อมูล / API / การทดสอบ
 
-| SRS v1.7 Must | Use Case | Data/API หลัก | Acceptance/Test |
+| SRS 1.0 Must | Use Case | Data/API หลัก | Acceptance/Test |
 |---|---|---|---|
 | 1 บัญชี/สิทธิ์ | UC-01, UC-06 | users, profiles; `/auth/*`, `/admin/jobs` | เข้าระบบทุก role, role rejection, cross-owner 404 |
 | 2 ข้อมูลงาน | UC-02, UC-03 | jobs, districts, price_fixtures; `POST /jobs` | รองรับสองคู่ category/service และข้อมูลบริษัท |
@@ -359,11 +357,11 @@ erDiagram
 2. สร้าง ER diagram ในเครื่องมือที่วิชาใช้ และแปลง data dictionary เป็น PostgreSQL schema/migrations.
 3. ทำ API contract tests และ seed/reset scripts ก่อนหรือพร้อมกับหน้า UI.
 4. เริ่มทำ vertical slice UC-01 → UC-02 ให้ครบก่อน; จากนั้น UC-03 → UC-04; ปิดท้ายสิทธิ์/ยกเลิก/Admin/tests.
-5. Baseline v1.7 ใช้เป็นประวัติ; สำหรับ scope ปัจจุบันให้ใช้ SRS v1.8 §13 และเอกสารนี้ §10 ซึ่งแทนข้อจำกัดเดิมที่ขัดกัน. ลำดับ vertical slice ในรายการเดิมเป็นแนวทาง v1.7; สำหรับ v1.8 ให้เริ่ม adapter interfaces/test doubles ควบคู่กับ schema และ core workflow แล้วทำ integration spike ก่อนเปิดเรียก AI/market API จริง. ห้ามหยิบ feature อื่นนอก scope v1.8 เข้ามาโดยไม่ได้ตกลง change.
+5. Baseline 1.0 ใช้เป็นประวัติ; สำหรับ scope ปัจจุบันให้ใช้ SRS 1.0 §13 และเอกสารนี้ §10 ซึ่งแทนข้อจำกัดเดิมที่ขัดกัน. ลำดับ vertical slice ในรายการเดิมเป็นแนวทาง 1.0; สำหรับ 1.0 ให้เริ่ม adapter interfaces/test doubles ควบคู่กับ schema และ core workflow แล้วทำ integration spike ก่อนเปิดเรียก AI/market API จริง. ห้ามหยิบ feature อื่นนอก scope 1.0 เข้ามาโดยไม่ได้ตกลง change.
 
-## 10. ส่วนขยายกรณีใช้งานและ API สำหรับ Demo v1.8
+## 10. ส่วนขยายกรณีใช้งานและ API สำหรับ ระบบสาธิต 1.0
 
-ข้อกำหนดในหัวข้อนี้เป็น revision หลัง v1.7 และใช้แทนรายละเอียดที่ขัดกันใน §§1–9. แกนเดิมยังคงอยู่: บัญชี seed, สอง workflow, provider seed, B2C matching, B2B เลือก offer. Demo ปัจจุบันใช้ Ollama/Gemma 3 4B local หลัง consent และ curated public price references แบบ non-live; automated tests ใช้ test adapters. รายละเอียดคอลัมน์ครบอยู่ใน [ขั้น 4 Expanded Data Model](mvp-data-model-v1.md); route และพฤติกรรมล่าสุดให้ยึด [ขั้น 5](api-and-job-state-v1.md).
+ข้อกำหนดในหัวข้อนี้เป็น revision หลัง 1.0 และใช้แทนรายละเอียดที่ขัดกันใน §§1–9. แกนเดิมยังคงอยู่: บัญชี seed, สอง workflow, provider seed, B2C matching, B2B เลือก offer. Demo ปัจจุบันใช้ Ollama/Gemma 3 4B local หลัง consent และ curated public price references แบบ non-live; automated tests ใช้ test adapters. รายละเอียดคอลัมน์ครบอยู่ใน [ขั้น 4 Expanded Data Model](mvp-data-model-v1.md); route และพฤติกรรมล่าสุดให้ยึด [ขั้น 5](api-and-job-state-v1.md).
 
 ### 10.1 Use cases ที่เพิ่ม/เปลี่ยน
 
@@ -455,7 +453,7 @@ payment_simulations.amount ต้องคัดลอกจาก jobs.agreed_a
 | Payment simulation | `PENDING`, `PLATFORM_SIMULATED_PAID`, `PROVIDER_CONFIRMED_DIRECT`, `FAILED` |
 | Warranty | `NOT_APPLICABLE`, `ACTIVE`, `EXPIRED` |
 | Warranty claim | `OPEN`, `UNDER_REVIEW`, `RESOLVED`, `REJECTED`, `CLOSED` |
-| Review | `VISIBLE`, `HIDDEN` (หนึ่งรายการต่อ Job; moderation ไม่อยู่ใน Demo v1.8) |
+| Review | `VISIBLE`, `HIDDEN` (หนึ่งรายการต่อ Job; moderation ไม่อยู่ใน ระบบสาธิต 1.0) |
 | Dispute | `OPEN`, `UNDER_REVIEW`, `RESOLVED`, `REJECTED`, `CLOSED` |
 
 การเปลี่ยน Job, appointment, payment simulation, dispute และ notification row ใช้ DB transaction เดียวกันตาม schema 26 ตาราง; ถ้าการบันทึก notification ใน DB ล้มเหลว domain transaction จะ rollback ด้วย (ไม่ใช่ post-commit/outbox). ตรวจ concurrency ของ appointment overlap และการ confirm payment/dispute ซ้ำ. External AI/market API ทำงานนอก DB transaction; บันทึกผล/ความล้มเหลวกลับด้วย version/correlation ID และไม่ทิ้งสถานะกึ่งสำเร็จ.
@@ -471,8 +469,8 @@ payment_simulations.amount ต้องคัดลอกจาก jobs.agreed_a
 | Simulated payment | `payment_simulations` | B2B platform-only, B2C platform/direct, no gateway, idempotency |
 | Aftercare and trust | `warranties`, `warranty_claims`, `reviews`, `disputes`, `admin_audit_logs` | warranty timing/terms, review unique job, dispute ACL/resolution/audit |
 
-ERD ขั้น 2 v1.7 ใช้เป็นแบบจำลองแกนกลางเท่านั้น ความสัมพันธ์และนิยามคอลัมน์ฉบับขยายที่ครบถ้วนอยู่ใน [ขั้น 4](mvp-data-model-v1.md) Admin ยังอ่านงานทั่วไปได้อย่างเดียว และทำได้เพิ่มเฉพาะงานรับประกัน/ข้อพิพาทตามขอบเขตด้านบน revision นี้ยังไม่เพิ่มการอนุมัติ provider หรือ catalog ราคาที่แก้ไขผ่านหน้าเว็บได้
+ERD ขั้น 2 1.0 ใช้เป็นแบบจำลองแกนกลางเท่านั้น ความสัมพันธ์และนิยามคอลัมน์ฉบับขยายที่ครบถ้วนอยู่ใน [ขั้น 4](mvp-data-model-v1.md) Admin ยังอ่านงานทั่วไปได้อย่างเดียว และทำได้เพิ่มเฉพาะงานรับประกัน/ข้อพิพาทตามขอบเขตด้านบน revision นี้ยังไม่เพิ่มการอนุมัติ provider หรือ catalog ราคาที่แก้ไขผ่านหน้าเว็บได้
 
 ### 10.5 ขอบเขต integration และการพัฒนาขั้น 7
 
-Demo v1.8.4 ใช้ Ollama/Gemma 3 4B แบบ local และ curated reference catalog ที่ดูแลใน source; ไม่ใช่ cloud AI/live-market integration. ขั้น 7 implementation, PostgreSQL workflow, stale guards และ browser price/stale checks ผ่านตาม [เอกสารขั้น 7](step-7-pricing-matching-decisions.md) และ [validation report](validation.md). ห้ามสมมติ rating, experience, distance, workload หรือ actual provider quotes ที่ Demo ยังไม่มี. การเพิ่มปัจจัยที่ต้องการข้อมูลใหม่ให้แยกเป็น future scope/change request พร้อม SRS/API/schema/tests update.
+ระบบสาธิต 1.0 ใช้ Ollama/Gemma 3 4B แบบ local และ curated reference catalog ที่ดูแลใน source; ไม่ใช่ cloud AI/live-market integration. ขั้น 7 implementation, PostgreSQL workflow, stale guards และ browser price/stale checks ผ่านตาม [เอกสารขั้น 7](step-7-pricing-matching-decisions.md) และ [validation report](validation.md). ห้ามสมมติ rating, experience, distance, workload หรือ actual provider quotes ที่ Demo ยังไม่มี. การเพิ่มปัจจัยที่ต้องการข้อมูลใหม่ให้แยกเป็น future scope/change request พร้อม SRS/API/schema/tests update.
